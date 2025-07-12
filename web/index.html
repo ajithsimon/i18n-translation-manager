@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>i18n Translation Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-right: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .tab:last-child {
+            border-right: none;
+        }
+        
+        .tab.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+        
+        .tab-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .status-card.complete {
+            border-left-color: #28a745;
+        }
+        
+        .status-card.incomplete {
+            border-left-color: #ffc107;
+        }
+        
+        .status-card h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #28a745;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-fill.incomplete {
+            background: #ffc107;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+        
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 i18n Translation Manager</h1>
+            <p>Automated translation management with dynamic language detection</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('sync')">🔄 Sync Translations</button>
+            <button class="tab" onclick="showTab('add')">➕ Add New Key</button>
+            <button class="tab" onclick="showTab('status')">📊 Translation Status</button>
+        </div>
+        
+        <!-- Sync Translations Tab -->
+        <div id="sync-tab" class="tab-content">
+            <h2>🔄 Sync Translations</h2>
+            <p>Synchronize all language files with your source language. Missing translations will be automatically generated.</p>
+            
+            <div class="form-group">
+                <label for="sourceLang">Source Language:</label>
+                <select id="sourceLang">
+                    <option value="">Loading languages...</option>
+                </select>
+            </div>
+            
+            <button class="btn" onclick="syncTranslations()">
+                <span id="syncBtnText">Start Synchronization</span>
+            </button>
+            
+            <div id="syncResult"></div>
+        </div>
+        
+        <!-- Add New Key Tab -->
+        <div id="add-tab" class="tab-content hidden">
+            <h2>➕ Add New Translation Key</h2>
+            <p>Add a new translation key that will be automatically translated to all supported languages.</p>
+            
+            <div class="form-group">
+                <label for="newKey">Translation Key (use dot notation):</label>
+                <input type="text" id="newKey" placeholder="e.g., button.save, user.profile.name">
+            </div>
+            
+            <div class="form-group">
+                <label for="newValue">Source Text:</label>
+                <textarea id="newValue" rows="3" placeholder="Enter the text in your source language"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="addSourceLang">Source Language:</label>
+                <select id="addSourceLang">
+                    <option value="">Loading languages...</option>
+                </select>
+            </div>
+            
+            <button class="btn" onclick="addTranslationKey()">
+                <span id="addBtnText">Add Translation Key</span>
+            </button>
+            
+            <div id="addResult"></div>
+        </div>
+        
+        <!-- Translation Status Tab -->
+        <div id="status-tab" class="tab-content hidden">
+            <h2>📊 Translation Status</h2>
+            <p>Check the completeness of translations across all supported languages.</p>
+            
+            <div class="form-group">
+                <label for="statusSourceLang">Source Language:</label>
+                <select id="statusSourceLang">
+                    <option value="">Loading languages...</option>
+                </select>
+            </div>
+            
+            <button class="btn" onclick="checkStatus()">
+                <span id="statusBtnText">Check Status</span>
+            </button>
+            
+            <div id="statusResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let supportedLanguages = {};
+
+        // Load supported languages on page load
+        window.addEventListener('DOMContentLoaded', loadLanguages);
+
+        async function loadLanguages() {
+            try {
+                const response = await fetch('/api/languages');
+                const data = await response.json();
+                
+                if (data.success) {
+                    supportedLanguages = data.languages;
+                    populateLanguageSelects();
+                } else {
+                    showMessage('error', 'Failed to load languages: ' + data.error);
+                }
+            } catch (error) {
+                showMessage('error', 'Error loading languages: ' + error.message);
+            }
+        }
+
+        function populateLanguageSelects() {
+            const selects = ['sourceLang', 'addSourceLang', 'statusSourceLang'];
+            const languages = Object.keys(supportedLanguages);
+            
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '';
+                
+                languages.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang;
+                    option.textContent = lang.toUpperCase();
+                    if (lang === 'en') option.selected = true;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('.tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            event.target.classList.add('active');
+        }
+
+        async function syncTranslations() {
+            const sourceLang = document.getElementById('sourceLang').value;
+            const btn = document.getElementById('syncBtnText');
+            const originalText = btn.textContent;
+            
+            btn.innerHTML = '<span class="loading"></span>Synchronizing...';
+            document.querySelector('#sync-tab .btn').disabled = true;
+            
+            try {
+                const response = await fetch('/api/sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sourceLang })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('success', '✅ Translation sync completed successfully!', 'syncResult');
+                } else {
+                    showMessage('error', 'Sync failed: ' + data.error, 'syncResult');
+                }
+            } catch (error) {
+                showMessage('error', 'Error: ' + error.message, 'syncResult');
+            } finally {
+                btn.textContent = originalText;
+                document.querySelector('#sync-tab .btn').disabled = false;
+            }
+        }
+
+        async function addTranslationKey() {
+            const key = document.getElementById('newKey').value.trim();
+            const value = document.getElementById('newValue').value.trim();
+            const sourceLang = document.getElementById('addSourceLang').value;
+            
+            if (!key || !value) {
+                showMessage('error', 'Please provide both key and value', 'addResult');
+                return;
+            }
+            
+            const btn = document.getElementById('addBtnText');
+            const originalText = btn.textContent;
+            
+            btn.innerHTML = '<span class="loading"></span>Adding key...';
+            document.querySelector('#add-tab .btn').disabled = true;
+            
+            try {
+                const response = await fetch('/api/add-key', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key, value, sourceLang })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('success', '✅ Translation key added successfully!', 'addResult');
+                    document.getElementById('newKey').value = '';
+                    document.getElementById('newValue').value = '';
+                } else {
+                    showMessage('error', 'Failed to add key: ' + data.error, 'addResult');
+                }
+            } catch (error) {
+                showMessage('error', 'Error: ' + error.message, 'addResult');
+            } finally {
+                btn.textContent = originalText;
+                document.querySelector('#add-tab .btn').disabled = false;
+            }
+        }
+
+        async function checkStatus() {
+            const sourceLang = document.getElementById('statusSourceLang').value;
+            const btn = document.getElementById('statusBtnText');
+            const originalText = btn.textContent;
+            
+            btn.innerHTML = '<span class="loading"></span>Checking status...';
+            document.querySelector('#status-tab .btn').disabled = true;
+            
+            try {
+                const response = await fetch(`/api/status?source=${sourceLang}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayStatus(data.status);
+                } else {
+                    showMessage('error', 'Failed to get status: ' + data.error, 'statusResult');
+                }
+            } catch (error) {
+                showMessage('error', 'Error: ' + error.message, 'statusResult');
+            } finally {
+                btn.textContent = originalText;
+                document.querySelector('#status-tab .btn').disabled = false;
+            }
+        }
+
+        function displayStatus(status) {
+            const resultDiv = document.getElementById('statusResult');
+            resultDiv.innerHTML = '';
+            
+            const grid = document.createElement('div');
+            grid.className = 'status-grid';
+            
+            Object.entries(status).forEach(([lang, info]) => {
+                const card = document.createElement('div');
+                card.className = `status-card ${info.completeness === 100 ? 'complete' : 'incomplete'}`;
+                
+                card.innerHTML = `
+                    <h3>${lang.toUpperCase()}</h3>
+                    <p>${info.translated}/${info.total} translations (${info.completeness}%)</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${info.completeness < 100 ? 'incomplete' : ''}" 
+                             style="width: ${info.completeness}%"></div>
+                    </div>
+                    ${info.missing > 0 ? `<p style="color: #856404;">${info.missing} missing translations</p>` : '<p style="color: #155724;">✅ Complete</p>'}
+                `;
+                
+                grid.appendChild(card);
+            });
+            
+            resultDiv.appendChild(grid);
+        }
+
+        function showMessage(type, text, containerId = null) {
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = text;
+            
+            if (containerId) {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                container.appendChild(message);
+            } else {
+                document.body.appendChild(message);
+                setTimeout(() => message.remove(), 5000);
+            }
+        }
+    </script>
+</body>
+</html>
