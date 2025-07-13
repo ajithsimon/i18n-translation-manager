@@ -1,0 +1,10 @@
+{
+  "common": {
+    "hello": "Hola",
+    "goodbye": "Adiós"
+  },
+  "buttons": {
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  }
+}

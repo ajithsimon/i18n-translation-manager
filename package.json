@@ -8,9 +8,16 @@
     "i18n-translate": "bin/cli.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "prepublishOnly": "echo 'Publishing i18n-translation-manager...'",
-    "start": "node bin/cli.js"
+    "start": "node bin/cli.js",
+    "dev": "node --watch bin/cli.js",
+    "server": "node bin/cli.js server 3000",
+    "server:dev": "node --watch bin/cli.js server 3000",
+    "test": "node --test",
+    "test:watch": "node --test --watch",
+    "lint": "echo 'Add ESLint here'",
+    "format": "echo 'Add Prettier here'",
+    "build": "echo 'Build process if needed'",
+    "prepublishOnly": "npm test && echo 'Publishing i18n-translation-manager...'"
   },
   "keywords": [
     "i18n",

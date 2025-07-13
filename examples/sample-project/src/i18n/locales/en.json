@@ -1,0 +1,17 @@
+{
+  "common": {
+    "hello": "Hello",
+    "goodbye": "Goodbye",
+    "welcome": "Welcome"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete"
+  },
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact"
+  }
+}
