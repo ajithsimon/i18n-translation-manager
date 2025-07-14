@@ -223,6 +223,7 @@
         <div class="tabs">
             <button class="tab active" onclick="showTab('sync')">🔄 Sync Translations</button>
             <button class="tab" onclick="showTab('add')">➕ Add New Key</button>
+            <button class="tab" onclick="showTab('language')">🌍 Add New Language</button>
             <button class="tab" onclick="showTab('status')">📊 Translation Status</button>
         </div>
         
@@ -274,6 +275,52 @@
             <div id="addResult"></div>
         </div>
         
+        <!-- Add New Language Tab -->
+        <div id="language-tab" class="tab-content hidden">
+            <h2>🌍 Add New Language</h2>
+            <p>Add support for a new language. The system will clone your source language and translate it automatically.</p>
+            
+            <div class="form-group">
+                <label for="sourceLanguageForNew">Source Language to Clone From:</label>
+                <select id="sourceLanguageForNew">
+                    <option value="">Loading languages...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="newLanguageSelect">Select New Language to Add:</label>
+                <select id="newLanguageSelect">
+                    <option value="">Loading available languages...</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="batchSize">Translation Batch Size:</label>
+                <select id="batchSize">
+                    <option value="25">25 keys per batch</option>
+                    <option value="50" selected>50 keys per batch</option>
+                    <option value="100">100 keys per batch</option>
+                </select>
+                <small style="color: #666; display: block; margin-top: 5px;">
+                    Smaller batches are more reliable but take longer. Larger batches are faster but may hit API limits.
+                </small>
+            </div>
+            
+            <button class="btn" onclick="addNewLanguage()">
+                <span id="addLanguageBtnText">Add Language & Start Translation</span>
+            </button>
+            
+            <div id="addLanguageResult"></div>
+            <div id="translationProgress" class="hidden">
+                <h3>Translation Progress</h3>
+                <div class="progress-bar">
+                    <div id="translationProgressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <p id="translationProgressText">Preparing translation...</p>
+                <div id="translationLog" style="max-height: 200px; overflow-y: auto; background: #f8f9fa; padding: 10px; margin-top: 10px; border-radius: 4px; font-family: monospace; font-size: 12px;"></div>
+            </div>
+        </div>
+        
         <!-- Translation Status Tab -->
         <div id="status-tab" class="tab-content hidden">
             <h2>📊 Translation Status</h2>
@@ -296,6 +343,30 @@
 
     <script>
         let supportedLanguages = {};
+        
+        // Top 20 most popular languages for web applications
+        const popularLanguages = {
+            'es': 'Spanish (Español)',
+            'fr': 'French (Français)', 
+            'de': 'German (Deutsch)',
+            'it': 'Italian (Italiano)',
+            'pt': 'Portuguese (Português)',
+            'ru': 'Russian (Русский)',
+            'ja': 'Japanese (日本語)',
+            'ko': 'Korean (한국어)',
+            'zh': 'Chinese Simplified (简体中文)',
+            'zh-tw': 'Chinese Traditional (繁體中文)',
+            'ar': 'Arabic (العربية)',
+            'hi': 'Hindi (हिन्दी)',
+            'tr': 'Turkish (Türkçe)',
+            'pl': 'Polish (Polski)',
+            'nl': 'Dutch (Nederlands)',
+            'sv': 'Swedish (Svenska)',
+            'th': 'Thai (ไทย)',
+            'vi': 'Vietnamese (Tiếng Việt)',
+            'id': 'Indonesian (Bahasa Indonesia)',
+            'uk': 'Ukrainian (Українська)'
+        };
 
         // Load supported languages on page load
         window.addEventListener('DOMContentLoaded', loadLanguages);
@@ -317,14 +388,15 @@
         }
 
         function populateLanguageSelects() {
-            const selects = ['sourceLang', 'addSourceLang', 'statusSourceLang'];
-            const languages = Object.keys(supportedLanguages);
+            const existingLanguages = Object.keys(supportedLanguages);
             
-            selects.forEach(selectId => {
+            // Populate existing language selects (for source language selection)
+            const existingSelects = ['sourceLang', 'addSourceLang', 'statusSourceLang', 'sourceLanguageForNew'];
+            existingSelects.forEach(selectId => {
                 const select = document.getElementById(selectId);
                 select.innerHTML = '';
                 
-                languages.forEach(lang => {
+                existingLanguages.forEach(lang => {
                     const option = document.createElement('option');
                     option.value = lang;
                     option.textContent = lang.toUpperCase();
@@ -332,6 +404,30 @@
                     select.appendChild(option);
                 });
             });
+            
+            // Populate new language select (exclude existing languages)
+            const newLanguageSelect = document.getElementById('newLanguageSelect');
+            newLanguageSelect.innerHTML = '<option value="">Select a language to add...</option>';
+            
+            // Get available languages (not already in project)
+            const availableLanguages = Object.keys(popularLanguages)
+                .filter(lang => !existingLanguages.includes(lang))
+                .sort((a, b) => popularLanguages[a].localeCompare(popularLanguages[b]));
+            
+            if (availableLanguages.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'All popular languages are already added!';
+                option.disabled = true;
+                newLanguageSelect.appendChild(option);
+            } else {
+                availableLanguages.forEach(lang => {
+                    const option = document.createElement('option');
+                    option.value = lang;
+                    option.textContent = popularLanguages[lang];
+                    newLanguageSelect.appendChild(option);
+                });
+            }
         }
 
         function showTab(tabName) {
@@ -484,6 +580,133 @@
             } else {
                 document.body.appendChild(message);
                 setTimeout(() => message.remove(), 5000);
+            }
+        }
+
+        async function addNewLanguage() {
+            const sourceLanguage = document.getElementById('sourceLanguageForNew').value;
+            const newLanguage = document.getElementById('newLanguageSelect').value;
+            const batchSize = parseInt(document.getElementById('batchSize').value);
+            
+            if (!sourceLanguage || !newLanguage) {
+                showMessage('error', 'Please select both source and target languages', 'addLanguageResult');
+                return;
+            }
+            
+            const btn = document.getElementById('addLanguageBtnText');
+            const originalText = btn.textContent;
+            
+            btn.innerHTML = '<span class="loading"></span>Adding language...';
+            document.querySelector('#language-tab .btn').disabled = true;
+            
+            // Show progress section
+            document.getElementById('translationProgress').classList.remove('hidden');
+            document.getElementById('translationProgressText').textContent = 'Initializing new language...';
+            
+            try {
+                const response = await fetch('/api/add-language', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        sourceLanguage, 
+                        newLanguage, 
+                        batchSize 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('success', `✅ Language ${popularLanguages[newLanguage]} added successfully!`, 'addLanguageResult');
+                    
+                    // Start translation process
+                    await startBatchTranslation(sourceLanguage, newLanguage, batchSize);
+                    
+                    // Reload languages to update selects
+                    await loadLanguages();
+                } else {
+                    showMessage('error', 'Failed to add language: ' + data.error, 'addLanguageResult');
+                }
+            } catch (error) {
+                showMessage('error', 'Error: ' + error.message, 'addLanguageResult');
+            } finally {
+                btn.textContent = originalText;
+                document.querySelector('#language-tab .btn').disabled = false;
+            }
+        }
+
+        async function startBatchTranslation(sourceLanguage, newLanguage, batchSize) {
+            const progressFill = document.getElementById('translationProgressFill');
+            const progressText = document.getElementById('translationProgressText');
+            const progressLog = document.getElementById('translationLog');
+            
+            progressText.textContent = 'Starting batch translation...';
+            progressLog.innerHTML = '';
+            
+            try {
+                // Get total keys count first
+                const statusResponse = await fetch(`/api/translation-status?source=${sourceLanguage}&target=${newLanguage}`);
+                const statusData = await statusResponse.json();
+                
+                if (!statusData.success) {
+                    throw new Error('Failed to get translation status');
+                }
+                
+                const totalKeys = statusData.totalKeys;
+                let processedKeys = 0;
+                
+                progressText.textContent = `Translating ${totalKeys} keys in batches of ${batchSize}...`;
+                
+                // Process in batches
+                for (let offset = 0; offset < totalKeys; offset += batchSize) {
+                    const batchResponse = await fetch('/api/translate-batch', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            sourceLanguage,
+                            targetLanguage: newLanguage,
+                            batchSize,
+                            offset
+                        })
+                    });
+                    
+                    const batchData = await batchResponse.json();
+                    
+                    if (batchData.success) {
+                        processedKeys += batchData.processed;
+                        const progress = Math.round((processedKeys / totalKeys) * 100);
+                        
+                        progressFill.style.width = progress + '%';
+                        progressText.textContent = `Translated ${processedKeys}/${totalKeys} keys (${progress}%)`;
+                        
+                        // Add to log
+                        const logEntry = document.createElement('div');
+                        logEntry.textContent = `✅ Batch ${Math.ceil(offset/batchSize) + 1}: Translated ${batchData.processed} keys`;
+                        progressLog.appendChild(logEntry);
+                        progressLog.scrollTop = progressLog.scrollHeight;
+                        
+                        // Small delay to prevent API overload
+                        if (offset + batchSize < totalKeys) {
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                    } else {
+                        throw new Error(`Batch translation failed: ${batchData.error}`);
+                    }
+                }
+                
+                progressText.textContent = `🎉 Translation completed! ${processedKeys} keys translated.`;
+                const logEntry = document.createElement('div');
+                logEntry.style.color = '#28a745';
+                logEntry.style.fontWeight = 'bold';
+                logEntry.textContent = `🎉 All translations completed successfully!`;
+                progressLog.appendChild(logEntry);
+                
+            } catch (error) {
+                progressText.textContent = `❌ Translation failed: ${error.message}`;
+                const logEntry = document.createElement('div');
+                logEntry.style.color = '#dc3545';
+                logEntry.textContent = `❌ Error: ${error.message}`;
+                progressLog.appendChild(logEntry);
             }
         }
     </script>

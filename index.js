@@ -312,4 +312,88 @@ export class TranslationManager {
     
     return status;
   }
+
+  // Add new language support by cloning from source language
+  async addNewLanguage(sourceLanguage, newLanguage) {
+    const sourceFilePath = path.join(this.localesPath, `${sourceLanguage}.json`);
+    const newFilePath = path.join(this.localesPath, `${newLanguage}.json`);
+    
+    if (!fs.existsSync(sourceFilePath)) {
+      throw new Error(`Source language file not found: ${sourceLanguage}.json`);
+    }
+    
+    if (fs.existsSync(newFilePath)) {
+      throw new Error(`Language file already exists: ${newLanguage}.json`);
+    }
+    
+    try {
+      // Clone the source language file
+      const sourceData = this.loadLocale(sourceLanguage);
+      this.saveLocale(newLanguage, sourceData);
+      
+      // Update supported languages
+      this.supportedLanguages[newLanguage] = newLanguage;
+      
+      console.log(`✅ Language ${newLanguage} added successfully by cloning from ${sourceLanguage}`);
+    } catch (error) {
+      throw new Error(`Failed to add new language: ${error.message}`);
+    }
+  }
+
+  // Get total key count for batch processing
+  getKeyCount(sourceLang = null) {
+    sourceLang = sourceLang || this.config.defaultSourceLang;
+    const sourceData = this.loadLocale(sourceLang);
+    return this.getAllKeys(sourceData).length;
+  }
+
+  // Translate a batch of keys
+  async translateBatch(sourceLanguage, targetLanguage, batchSize = 50, offset = 0) {
+    const sourceData = this.loadLocale(sourceLanguage);
+    const targetData = this.loadLocale(targetLanguage);
+    
+    // Get all keys and select the batch
+    const allKeys = this.getAllKeys(sourceData);
+    const batchKeys = allKeys.slice(offset, offset + batchSize);
+    
+    if (batchKeys.length === 0) {
+      return 0; // No more keys to process
+    }
+    
+    let translatedCount = 0;
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+    
+    console.log(`🔄 Translating batch of ${batchKeys.length} keys for ${targetLanguage}...`);
+    
+    for (const key of batchKeys) {
+      try {
+        const sourceText = this.getValue(sourceData, key);
+        const existingTranslation = this.getValue(targetData, key);
+        
+        // Skip if translation already exists
+        if (existingTranslation && existingTranslation !== sourceText) {
+          continue;
+        }
+        
+        // Translate the text
+        const translatedText = await this.translateText(sourceText, sourceLanguage, targetLanguage);
+        
+        // Set the translated value
+        this.setValue(targetData, key, translatedText);
+        translatedCount++;
+        
+        // Small delay to prevent API overload
+        await delay(100);
+      } catch (error) {
+        console.error(`❌ Error translating key ${key}:`, error.message);
+        // Continue with next key instead of failing the entire batch
+      }
+    }
+    
+    // Save the updated target language file
+    this.saveLocale(targetLanguage, targetData);
+    
+    console.log(`✅ Batch complete: translated ${translatedCount}/${batchKeys.length} keys for ${targetLanguage}`);
+    return translatedCount;
+  }
 }
