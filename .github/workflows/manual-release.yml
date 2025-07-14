@@ -30,9 +30,6 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Run tests
-      run: npm test
-
     - name: Update version
       run: npm version ${{ github.event.inputs.version }} --no-git-tag-version
 

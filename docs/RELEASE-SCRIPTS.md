@@ -36,7 +36,7 @@ npm run release:custom 2.1.5
 # Run the same checks as CI pipeline locally
 npm run ci:local
 ```
-**Runs:** Tests → Linting → Build → Package validation
+**Runs:** Package validation
 
 ### Publish Validation
 ```bash
@@ -47,8 +47,7 @@ npm run publish:check
 
 ### Individual Pipeline Steps
 ```bash
-npm run pipeline:test   # Tests + linting
-npm run pipeline:build  # Build + package validation
+npm run pipeline:build  # Package validation
 npm run pipeline:check  # Full pipeline check
 ```
 
@@ -75,12 +74,6 @@ npm run dev         # CLI with auto-reload
 npm run server:dev  # Web server with auto-reload
 npm start           # Regular CLI
 npm run server      # Regular web server
-```
-
-### Testing
-```bash
-npm test            # Run tests once
-npm run test:watch  # Run tests in watch mode
 ```
 
 ## 📋 Available Scripts Summary
@@ -135,7 +128,7 @@ npm run release:major
 
 ## 🛡️ Safety Features
 
-- **All scripts run tests first** - Prevents broken releases
+- **Package validation** - Ensures package builds correctly
 - **Dry-run validation** - See what happens without risk
 - **Local CI simulation** - Catch issues before GitHub
 - **Version bump automation** - Consistent versioning
@@ -150,9 +143,9 @@ git commit -m "your changes"
 # Then run release script
 ```
 
-### "Tests failed"
+### "Package build failed"
 ```bash
-npm test  # See specific test failures
+npm run pipeline:build  # See specific build issues
 # Fix issues, then retry
 ```
 
