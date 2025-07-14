@@ -6,7 +6,7 @@ describe('i18n Translation Manager Tests', () => {
   test('should load package.json correctly', () => {
     const packageJson = JSON.parse(readFileSync('./package.json', 'utf8'));
     assert.strictEqual(packageJson.name, 'i18n-translation-manager');
-    assert.strictEqual(packageJson.version, '1.0.0');
+    assert.strictEqual(packageJson.version, '2.0.0');
   });
 
   test('should have required files', () => {
