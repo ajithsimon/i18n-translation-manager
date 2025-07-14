@@ -1,5 +1,10 @@
 # i18n-translation-manager
 
+![CI/CD Pipeline](https://github.com/ajithsimon/i18n-translation-manager/workflows/CI/CD%20Pipeline/badge.svg)
+![npm version](https://badge.fury.io/js/i18n-translation-manager.svg)
+![Node.js Version](https://img.shields.io/node/v/i18n-translation-manager.svg)
+![License](https://img.shields.io/npm/l/i18n-translation-manager.svg)
+
 🌍 **Universal automated translation management tool for i18n projects with dynamic language detection**
 
 A powerful, framework-agnostic library that simplifies managing translations across multiple languages in **any** project using JSON locale files. Works with Vue.js, React, Angular, Next.js, Nuxt, Svelte, Node.js, and more!
@@ -175,79 +180,38 @@ server.start();
 
 ## Framework Support
 
-This tool is **framework-agnostic** and works with any project that uses JSON locale files. Here are common configurations:
+This tool is **framework-agnostic** and works with any project that uses JSON locale files. Most frameworks follow standard patterns:
 
-### 🟢 Vue.js (vue-i18n)
+### Common Framework Configurations
+
+| Framework | Typical Path | i18n Library |
+|-----------|-------------|--------------|
+| 🟢 **Vue.js** | `./src/i18n/locales` | vue-i18n |
+| ⚛️ **React** | `./public/locales` | react-i18next |
+| 🅰️ **Angular** | `./src/assets/i18n` | Angular i18n |
+| ⚡ **Next.js** | `./public/locales` | next-i18next |
+| 💚 **Nuxt.js** | `./lang` | @nuxtjs/i18n |
+| 🔶 **Svelte** | `./src/lib/i18n` | svelte-i18n |
+| 🟢 **Node.js** | `./locales` | i18next |
+
+### Quick Setup for Popular Frameworks
+
 ```javascript
-// i18n.config.js
+// i18n.config.js - Choose the path for your framework
 export default {
-  localesPath: './src/i18n/locales',
+  localesPath: './src/i18n/locales',  // Vue.js
+  // localesPath: './public/locales',     // React/Next.js  
+  // localesPath: './src/assets/i18n',    // Angular
+  // localesPath: './lang',               // Nuxt.js
+  // localesPath: './src/lib/i18n',       // Svelte
+  // localesPath: './locales',            // Node.js
+  
   defaultSourceLang: 'en'
 };
 ```
-**Structure:** `src/i18n/locales/en.json`, `src/i18n/locales/de.json`
 
-### ⚛️ React (react-i18next)
-```javascript
-// i18n.config.js
-export default {
-  localesPath: './public/locales',
-  defaultSourceLang: 'en'
-};
-```
-**Structure:** `public/locales/en.json`, `public/locales/de.json`
-
-### 🅰️ Angular (Angular i18n)
-```javascript
-// i18n.config.js
-export default {
-  localesPath: './src/assets/i18n',
-  defaultSourceLang: 'en'
-};
-```
-**Structure:** `src/assets/i18n/en.json`, `src/assets/i18n/de.json`
-
-### ⚡ Next.js (next-i18next)
-```javascript
-// i18n.config.js
-export default {
-  localesPath: './public/locales',
-  defaultSourceLang: 'en'
-};
-```
-**Structure:** `public/locales/en.json`, `public/locales/de.json`
-
-### 💚 Nuxt.js (@nuxtjs/i18n)
-```javascript
-// i18n.config.js
-export default {
-  localesPath: './lang',
-  defaultSourceLang: 'en'
-};
-```
-**Structure:** `lang/en.json`, `lang/de.json`
-
-### 🔶 Svelte (svelte-i18n)
-```javascript
-// i18n.config.js
-export default {
-  localesPath: './src/lib/i18n',
-  defaultSourceLang: 'en'
-};
-```
-**Structure:** `src/lib/i18n/en.json`, `src/lib/i18n/de.json`
-
-### 🟢 Node.js (i18next)
-```javascript
-// i18n.config.js
-export default {
-  localesPath: './locales',
-  defaultSourceLang: 'en'
-};
-```
-**Structure:** `locales/en.json`, `locales/de.json`
-
-### 🎯 Custom Projects
+### Custom Projects
+For custom structures or multiple translation directories:
 ```javascript
 // i18n.config.js
 export default {
@@ -259,80 +223,53 @@ export default {
 
 ## Examples
 
-### Basic Vue.js Project
+### Quick Start for Any Framework
 
 ```bash
 # 1. Install the package
 npm install --save-dev i18n-translation-manager
 
-# 2. Initialize configuration
+# 2. Initialize with your framework's default path
 npx i18n-translate init
 
-# 3. Sync translations
+# 3. (Optional) Edit i18n.config.js to match your project structure
+
+# 4. Sync translations
 npx i18n-translate sync
 
-# 4. Add new keys
+# 5. Add new keys
 npx i18n-translate add "user.welcome" "Welcome back!"
 
-# 5. Start web interface
+# 6. Start web interface
 npx i18n-translate server
 ```
 
-### React with react-i18next
+### Framework-Specific Setup
 
+#### React/Next.js Projects
 ```bash
-# 1. Install the package
 npm install --save-dev i18n-translation-manager
-
-# 2. Create config for React structure
 echo 'export default { localesPath: "./public/locales", defaultSourceLang: "en" }' > i18n.config.js
-
-# 3. Sync translations
 npx i18n-translate sync
-
-# 4. Start web interface
-npx i18n-translate server
 ```
 
-### Angular Project
-
+#### Angular Projects
 ```bash
-# 1. Install the package
 npm install --save-dev i18n-translation-manager
-
-# 2. Create config for Angular structure
 echo 'export default { localesPath: "./src/assets/i18n", defaultSourceLang: "en" }' > i18n.config.js
-
-# 3. Sync translations
 npx i18n-translate sync
 ```
 
-### Next.js Project
-
+#### Nuxt.js Projects
 ```bash
-# 1. Install the package
 npm install --save-dev i18n-translation-manager
-
-# 2. Create config for Next.js structure
-echo 'export default { localesPath: "./public/locales", defaultSourceLang: "en" }' > i18n.config.js
-
-# 3. Sync translations
+echo 'export default { localesPath: "./lang", defaultSourceLang: "en" }' > i18n.config.js
 npx i18n-translate sync
 ```
 
-### Custom Project Structure
+### Advanced Configuration
 
-```javascript
-// i18n.config.js
-export default {
-  localesPath: './assets/translations',
-  defaultSourceLang: 'de',
-  excludeFiles: ['metadata.json']
-};
-```
-
-### Multiple Teams/Projects
-
+#### Multiple Teams/Projects
 Each project can have its own configuration:
 
 ```bash
@@ -344,8 +281,22 @@ echo 'export default { localesPath: "./src/i18n/locales", defaultSourceLang: "en
 cd project-b
 echo 'export default { localesPath: "./public/locales", defaultSourceLang: "de" }' > i18n.config.js
 
-# Both can use the same tool
-i18n-translate sync
+# Both projects use the same tool
+npx i18n-translate sync
+```
+
+#### Custom File Structure
+```javascript
+// i18n.config.js
+export default {
+  localesPath: './assets/translations',
+  defaultSourceLang: 'de',
+  excludeFiles: ['metadata.json'],
+  rateLimiting: {
+    batchSize: 3,
+    delayBetweenBatches: 2000
+  }
+};
 ```
 
 ## Integration with Package.json
