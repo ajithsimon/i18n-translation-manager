@@ -17,7 +17,18 @@
     "lint": "echo 'Add ESLint here'",
     "format": "echo 'Add Prettier here'",
     "build": "echo 'Build process if needed'",
-    "prepublishOnly": "npm test && echo 'Publishing i18n-translation-manager...'"
+    "prepublishOnly": "npm test && echo 'Publishing i18n-translation-manager...'",
+    "release:patch": "npm version patch && git push && git push --tags",
+    "release:minor": "npm version minor && git push && git push --tags",
+    "release:major": "npm version major && git push && git push --tags",
+    "release:custom": "npm version",
+    "pipeline:test": "npm test && npm run lint",
+    "pipeline:build": "npm run build && npm pack --dry-run",
+    "pipeline:check": "npm run pipeline:test && npm run pipeline:build",
+    "publish:check": "npm publish --dry-run",
+    "publish:manual": "npm run pipeline:check && npm publish",
+    "ci:local": "npm run pipeline:check && echo 'Local CI checks passed!'",
+    "release:help": "echo 'Release commands:\\n  npm run release:patch  - 2.0.0 → 2.0.1\\n  npm run release:minor  - 2.0.0 → 2.1.0\\n  npm run release:major  - 2.0.0 → 3.0.0\\n  npm run ci:local      - Run local CI checks\\n  npm run publish:check - Test publish without uploading'"
   },
   "keywords": [
     "i18n",
