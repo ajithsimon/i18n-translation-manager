@@ -385,3 +385,6 @@ MIT License - see LICENSE file for details.
 For teams at DIH: Contact the development team for support and custom configurations.
 
 For external users: Please open an issue on the GitHub repository.
+# Fixed npm authentication in CI/CD pipeline
+
+Added NPM_TOKEN secret for automated publishing
