@@ -352,7 +352,7 @@ export class TranslationManager {
   }
 
   // Add new language support by cloning from source language
-  public async addNewLanguage(sourceLanguage: string, newLanguage: string): Promise<void> {
+  public async addNewLanguage(sourceLanguage: string, newLanguage: string): Promise<{keysTranslated: number, totalKeys: number}> {
     const sourceFilePath = path.join(this.localesPath, `${sourceLanguage}.json`);
     const newFilePath = path.join(this.localesPath, `${newLanguage}.json`);
     
@@ -373,6 +373,22 @@ export class TranslationManager {
       this.supportedLanguages[newLanguage] = newLanguage;
       
       console.log(`✅ Language ${newLanguage} added successfully by cloning from ${sourceLanguage}`);
+      
+      // Automatically translate ALL keys in the new language (not just missing ones)
+      console.log(`🚀 Starting automatic translation for ${newLanguage}...`);
+      
+      const allKeys = this.getAllKeys(sourceData);
+      const totalKeys = allKeys.length;
+      console.log(`📋 Translating all ${totalKeys} keys to ${newLanguage}`);
+      
+      // Force translation of all keys by treating them as "missing"
+      const updatedData = await this.translateMissingKeys(sourceLanguage, newLanguage, allKeys, sourceData, {});
+      this.saveLocale(newLanguage, updatedData);
+      
+      console.log(`🎉 Translation completed for ${newLanguage}!`);
+      
+      return { keysTranslated: totalKeys, totalKeys };
+      
     } catch (error) {
       throw new Error(`Failed to add new language: ${(error as Error).message}`);
     }

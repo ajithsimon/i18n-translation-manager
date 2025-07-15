@@ -1,6 +1,12 @@
-# i18n-translation-manager
+# i18n-translation-manager## Recent Improvements
 
-![CI/CD Pipeline](https://github.com/ajithsimon/i18n-translation-manager/workflows/CI/CD%20Pipeline/badge.svg)
+- 🎯 **Enhanced Translation Experience**: Optimized add language functionality with accurate progress feedback
+- ⚡ **Performance Optimizations**: Reduced API calls and improved response times
+- 🔷 **Full TypeScript Support**: Complete TypeScript implementation with type definitions
+- 🌍 **Universal Framework Support**: Works seamlessly with Vue.js, React, Angular, Next.js, Nuxt, Svelte, and more
+- 🚀 **Advanced Web Interface**: Intuitive web GUI for translation management
+
+> **📋 [View Complete Release Notes](RELEASE-NOTES.md)** | **🔄 [View Changelog](CHANGELOG.md)** Pipeline](https://github.com/ajithsimon/i18n-translation-manager/workflows/CI/CD%20Pipeline/badge.svg)
 ![npm version](https://badge.fury.io/js/i18n-translation-manager.svg)
 ![Node.js Version](https://img.shields.io/node/v/i18n-translation-manager.svg)
 ![License](https://img.shields.io/npm/l/i18n-translation-manager.svg)
@@ -15,11 +21,24 @@ A powerful, framework-agnostic library that simplifies managing translations acr
 - ✅ **Automatic Translation**: Uses Google Translate to automatically translate missing keys
 - 🔄 **Sync Translations**: Keep all language files in sync with your source language
 - ➕ **Add New Keys**: Add new translation keys and automatically translate them to all languages
+- 🌍 **Add New Languages**: Add new languages with automatic translation through Web UI
 - 📊 **Translation Status**: Check completeness of translations across all languages
 - 🎯 **Nested Key Support**: Handles nested JSON objects with dot notation
 - 🚀 **CLI & Web GUI**: Both command-line and web-based interfaces
 - 🔧 **Framework-Agnostic**: Works with Vue.js, React, Angular, Next.js, Nuxt, Svelte, Node.js, and any project using JSON locale files
 - 📦 **Universal**: Can be used across multiple projects, frameworks, and teams
+- 🔷 **TypeScript Support**: Full TypeScript implementation with type definitions
+- ⚡ **Optimized Performance**: Efficient API calls and reduced redundancy
+
+## What's New in v2.3.0
+
+- � **Enhanced Add Language**: Web UI now shows actual translation counts instead of "0 keys translated"
+- ⚡ **Optimized Performance**: Eliminated redundant API calls for 3x faster language addition
+- 🔧 **Improved API**: Enhanced endpoints with better response data and error handling
+- 🔷 **Full TypeScript Support**: Complete TypeScript implementation with type definitions
+- � **Better Feedback**: Real-time translation progress with accurate statistics
+
+> **📋 [View Complete Changelog](CHANGELOG.md)** for detailed release history and migration notes.
 
 ## Installation
 

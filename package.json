@@ -1,6 +1,6 @@
 {
   "name": "i18n-translation-manager",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "type": "module",
   "description": "Universal automated translation management tool for i18n projects with dynamic language detection - works with Vue.js, React, Angular, Node.js, and any framework using JSON locale files",
   "main": "dist/index.js",

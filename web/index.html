@@ -601,7 +601,7 @@
             
             // Show progress section
             document.getElementById('translationProgress').classList.remove('hidden');
-            document.getElementById('translationProgressText').textContent = 'Initializing new language...';
+            document.getElementById('translationProgressText').textContent = 'Adding new language and translating...';
             
             try {
                 const response = await fetch('/api/add-language', {
@@ -609,18 +609,34 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         sourceLanguage, 
-                        newLanguage, 
-                        batchSize 
+                        newLanguage
                     })
                 });
                 
                 const data = await response.json();
                 
                 if (data.success) {
+                    // Show success with actual translation count from API response
+                    const keysTranslated = data.keysTranslated || 0;
+                    const totalKeys = data.totalKeys || 0;
+                    
                     showMessage('success', `✅ Language ${popularLanguages[newLanguage]} added successfully!`, 'addLanguageResult');
                     
-                    // Start translation process
-                    await startBatchTranslation(sourceLanguage, newLanguage, batchSize);
+                    // Update progress to show completion with actual numbers
+                    const progressFill = document.getElementById('translationProgressFill');
+                    const progressText = document.getElementById('translationProgressText');
+                    const progressLog = document.getElementById('translationLog');
+                    
+                    progressFill.style.width = '100%';
+                    progressText.textContent = `🎉 Translation completed! ${keysTranslated} keys translated.`;
+                    
+                    // Clear and update log
+                    progressLog.innerHTML = '';
+                    const logEntry = document.createElement('div');
+                    logEntry.style.color = '#28a745';
+                    logEntry.style.fontWeight = 'bold';
+                    logEntry.textContent = `✅ Successfully translated ${keysTranslated}/${totalKeys} keys to ${popularLanguages[newLanguage]}`;
+                    progressLog.appendChild(logEntry);
                     
                     // Reload languages to update selects
                     await loadLanguages();

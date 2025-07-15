@@ -52,8 +52,23 @@ export class TranslationServer {
     this.app.get('/api/status/:lang?', (req: Request, res: Response) => {
       try {
         const { lang } = req.params;
-        const { source } = req.query;
-        const status = this.translationManager.getTranslationStatus(source as string, lang);
+        const { source, target } = req.query;
+        
+        // Support both 'lang' param and 'target' query for flexibility
+        const targetLang = lang || target as string;
+        
+        const status = this.translationManager.getTranslationStatus(source as string, targetLang);
+        res.json({ success: true, status });
+      } catch (error) {
+        res.status(500).json({ success: false, error: (error as Error).message });
+      }
+    });
+
+    // Alias for translation-status (alternative endpoint name)
+    this.app.get('/api/translation-status', (req: Request, res: Response) => {
+      try {
+        const { source, target } = req.query;
+        const status = this.translationManager.getTranslationStatus(source as string, target as string);
         res.json({ success: true, status });
       } catch (error) {
         res.status(500).json({ success: false, error: (error as Error).message });
@@ -99,8 +114,13 @@ export class TranslationServer {
           });
         }
         
-        await this.translationManager.addNewLanguage(sourceLanguage, newLanguage);
-        return res.json({ success: true, message: `Language ${newLanguage} added successfully` });
+        const result = await this.translationManager.addNewLanguage(sourceLanguage, newLanguage);
+        return res.json({ 
+          success: true, 
+          message: `Language ${newLanguage} added successfully`, 
+          keysTranslated: result.keysTranslated,
+          totalKeys: result.totalKeys
+        });
       } catch (error) {
         return res.status(500).json({ success: false, error: (error as Error).message });
       }
@@ -167,14 +187,15 @@ export class TranslationServer {
           console.log(`   🖥️  Web GUI: http://localhost:${this.port}`);
           console.log(`   📡 API: http://localhost:${this.port}/api`);
           console.log(`\n📊 Available API endpoints:`);
-          console.log(`   GET  /api/languages          - Get supported languages`);
-          console.log(`   GET  /api/status/:lang?       - Get translation status`);
-          console.log(`   POST /api/sync               - Sync translations`);
-          console.log(`   POST /api/add-key            - Add new translation key`);
-          console.log(`   POST /api/add-language       - Add new language`);
-          console.log(`   POST /api/translate-batch    - Translate batch of keys`);
-          console.log(`   GET  /api/key-count/:lang?   - Get total key count`);
-          console.log(`   GET  /api/health             - Health check`);
+          console.log(`   GET  /api/languages               - Get supported languages`);
+          console.log(`   GET  /api/status/:lang?           - Get translation status`);
+          console.log(`   GET  /api/translation-status      - Get translation status (alias)`);
+          console.log(`   POST /api/sync                    - Sync translations`);
+          console.log(`   POST /api/add-key                 - Add new translation key`);
+          console.log(`   POST /api/add-language            - Add new language`);
+          console.log(`   POST /api/translate-batch         - Translate batch of keys`);
+          console.log(`   GET  /api/key-count/:lang?        - Get total key count`);
+          console.log(`   GET  /api/health                  - Health check`);
           resolve();
         });
 
