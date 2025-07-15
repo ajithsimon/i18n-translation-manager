@@ -3,23 +3,27 @@
   "version": "2.1.0",
   "type": "module",
   "description": "Universal automated translation management tool for i18n projects with dynamic language detection - works with Vue.js, React, Angular, Node.js, and any framework using JSON locale files",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
-    "i18n-translate": "bin/cli.js"
+    "i18n-translate": "dist/cli.js"
   },
   "scripts": {
-    "start": "node bin/cli.js",
-    "dev": "node --watch bin/cli.js",
-    "server": "node bin/cli.js server 3000",
-    "server:dev": "node --watch bin/cli.js server 3000",
-    "prepublishOnly": "echo 'Publishing i18n-translation-manager...'",
-    "release:patch": "npm version patch && git push && git push --tags",
-    "release:minor": "npm version minor && git push && git push --tags",
-    "release:major": "npm version major && git push && git push --tags",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "dev": "npm run build && node dist/cli.js",
+    "start": "node dist/cli.js",
+    "server": "npm run build && node dist/cli.js server 3000",
+    "server:dev": "npm run build && node --watch dist/cli.js server 3000",
+    "prepublishOnly": "npm run clean && npm run build && echo 'Publishing i18n-translation-manager...'",
+    "release:patch": "npm run clean && npm run build && npm version patch && git push && git push --tags",
+    "release:minor": "npm run clean && npm run build && npm version minor && git push && git push --tags",
+    "release:major": "npm run clean && npm run build && npm version major && git push && git push --tags",
     "release:custom": "npm version",
-    "pipeline:build": "npm pack --dry-run",
+    "pipeline:build": "npm run clean && npm run build && npm pack --dry-run",
     "pipeline:check": "npm run pipeline:build",
-    "publish:check": "npm publish --dry-run",
+    "publish:check": "npm run clean && npm run build && npm publish --dry-run",
     "publish:manual": "npm run pipeline:check && npm publish",
     "ci:local": "npm run pipeline:check && echo 'Local CI checks passed!'",
     "release:help": "echo 'Release commands:\\n  npm run release:patch  - 2.0.0 → 2.0.1\\n  npm run release:minor  - 2.0.0 → 2.1.0\\n  npm run release:major  - 2.0.0 → 3.0.0\\n  npm run ci:local      - Run local CI checks\\n  npm run publish:check - Test publish without uploading'"
@@ -27,6 +31,7 @@
   "keywords": [
     "i18n",
     "translation",
+    "typescript",
     "vue",
     "react",
     "angular",
@@ -38,14 +43,16 @@
     "automation",
     "locales",
     "internationalization",
-    "framework-agnostic"
+    "framework-agnostic",
+    "type-safe",
+    "typed"
   ],
   "author": "ajith438@gmail.com",
   "license": "MIT",
   "dependencies": {
-    "node-fetch": "^3.3.2",
+    "cors": "^2.8.5",
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "node-fetch": "^3.3.2"
   },
   "engines": {
     "node": ">=14.0.0"
@@ -55,10 +62,17 @@
     "url": "git+https://github.com/ajithsimon/i18n-translation-manager.git"
   },
   "files": [
-    "bin/",
-    "lib/",
+    "dist/",
     "web/",
-    "index.js",
-    "README.md"
-  ]
+    "README.md",
+    "TYPESCRIPT.md",
+    "DEVELOPMENT.md"
+  ],
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.13",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
 }

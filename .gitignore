@@ -37,7 +37,7 @@ bower_components
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 .DS_Store
-/dist
+# /dist - REMOVED: dist/ should be committed for TypeScript packages
 
 # Dependency directories
 node_modules/
@@ -80,3 +80,9 @@ typings/
 
 # ignore worktrees
 .worktrees
+
+# TypeScript
+*.tsbuildinfo
+# Note: dist/ should NOT be ignored - it's needed for publishing
+src/**/*.js
+src/**/*.js.map
