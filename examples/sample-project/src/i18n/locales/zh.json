@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "翻译经理",
+    "description": "管理翻译的强大工具",
+    "welcome": "欢迎来到我们的申请"
+  },
+  "navigation": {
+    "home": "家",
+    "about": "关于",
+    "contact": "接触"
+  },
+  "buttons": {
+    "submit": "提交",
+    "cancel": "取消",
+    "save": "节省"
+  }
+}

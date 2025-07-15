@@ -1,0 +1,22 @@
+{
+  "localesPath": "./src/i18n/locales",
+  "defaultSourceLang": "en",
+  "translationService": "google-free",
+  "excludeFiles": [],
+  "rateLimiting": {
+    "batchSize": 25,
+    "delayBetweenBatches": 1000
+  },
+  "supportedLanguages": {
+    "en": "English",
+    "es": "Spanish",
+    "fr": "French", 
+    "de": "German",
+    "zh": "Chinese",
+    "ja": "Japanese",
+    "it": "Italian",
+    "pt": "Portuguese",
+    "ru": "Russian",
+    "ko": "Korean"
+  }
+}

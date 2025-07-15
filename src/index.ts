@@ -40,11 +40,10 @@ export class TranslationManager {
       defaultSourceLang: 'en',
       translationService: 'google-free',
       filePattern: '{lang}.json',
-      excludeFiles: [],
-      rateLimiting: {
-        batchSize: 5,
+      excludeFiles: [],    rateLimiting: {
+        batchSize: 25,
         delayBetweenBatches: 1000
-      },
+    },
       ...config
     };
     
@@ -201,7 +200,8 @@ export class TranslationManager {
     targetLang: string, 
     missingKeys: string[], 
     sourceData: TranslationData, 
-    targetData: TranslationData
+    targetData: TranslationData,
+    progressCallback?: (progress: any) => void
   ): Promise<TranslationData> {
     console.log(`\n🔄 Translating ${missingKeys.length} missing keys from ${sourceLang} to ${targetLang}...`);
     
@@ -210,6 +210,20 @@ export class TranslationManager {
     
     for (let i = 0; i < missingKeys.length; i += batchSize) {
       const batch = missingKeys.slice(i, i + batchSize);
+      const batchNumber = Math.floor(i / batchSize) + 1;
+      const totalBatches = Math.ceil(missingKeys.length / batchSize);
+      
+      // Send progress update
+      const progress = Math.round(30 + ((i / missingKeys.length) * 60)); // 30-90% range
+      progressCallback?.({
+        type: 'progress',
+        stage: 'translating',
+        message: `Translating batch ${batchNumber}/${totalBatches} (${batch.length} keys)...`,
+        progress,
+        translated: i,
+        total: missingKeys.length
+      });
+      
       const promises = batch.map(async (key) => {
         const sourceValue = this.getValue(sourceData, key);
         if (typeof sourceValue === 'string' && sourceValue.trim()) {
@@ -231,6 +245,16 @@ export class TranslationManager {
         await new Promise(resolve => setTimeout(resolve, this.config.rateLimiting.delayBetweenBatches));
       }
     }
+    
+    // Send final progress update for translateMissingKeys
+    progressCallback?.({
+      type: 'progress',
+      stage: 'translation-complete',
+      message: `Translation batch completed! ${missingKeys.length} keys processed.`,
+      progress: 90,
+      translated: missingKeys.length,
+      total: missingKeys.length
+    });
     
     return result;
   }
@@ -352,7 +376,11 @@ export class TranslationManager {
   }
 
   // Add new language support by cloning from source language
-  public async addNewLanguage(sourceLanguage: string, newLanguage: string): Promise<{keysTranslated: number, totalKeys: number}> {
+  public async addNewLanguage(
+    sourceLanguage: string, 
+    newLanguage: string, 
+    progressCallback?: (progress: any) => void
+  ): Promise<{keysTranslated: number, totalKeys: number}> {
     const sourceFilePath = path.join(this.localesPath, `${sourceLanguage}.json`);
     const newFilePath = path.join(this.localesPath, `${newLanguage}.json`);
     
@@ -365,6 +393,14 @@ export class TranslationManager {
     }
     
     try {
+      // Send progress update - file creation
+      progressCallback?.({
+        type: 'progress',
+        stage: 'creating-file',
+        message: `Creating ${newLanguage}.json file...`,
+        progress: 10
+      });
+
       // Clone the source language file
       const sourceData = this.loadLocale(sourceLanguage);
       this.saveLocale(newLanguage, sourceData);
@@ -374,6 +410,13 @@ export class TranslationManager {
       
       console.log(`✅ Language ${newLanguage} added successfully by cloning from ${sourceLanguage}`);
       
+      progressCallback?.({
+        type: 'progress',
+        stage: 'analyzing-keys',
+        message: `Analyzing translation keys...`,
+        progress: 20
+      });
+      
       // Automatically translate ALL keys in the new language (not just missing ones)
       console.log(`🚀 Starting automatic translation for ${newLanguage}...`);
       
@@ -381,15 +424,52 @@ export class TranslationManager {
       const totalKeys = allKeys.length;
       console.log(`📋 Translating all ${totalKeys} keys to ${newLanguage}`);
       
+      progressCallback?.({
+        type: 'progress',
+        stage: 'translating',
+        message: `Starting translation of ${totalKeys} keys...`,
+        progress: 30,
+        totalKeys
+      });
+      
       // Force translation of all keys by treating them as "missing"
-      const updatedData = await this.translateMissingKeys(sourceLanguage, newLanguage, allKeys, sourceData, {});
+      const updatedData = await this.translateMissingKeys(
+        sourceLanguage, 
+        newLanguage, 
+        allKeys, 
+        sourceData, 
+        {}, 
+        progressCallback
+      );
       this.saveLocale(newLanguage, updatedData);
       
       console.log(`🎉 Translation completed for ${newLanguage}!`);
       
+      progressCallback?.({
+        type: 'progress',
+        stage: 'saving',
+        message: `Saving translation file...`,
+        progress: 95
+      });
+      
+      progressCallback?.({
+        type: 'progress',
+        stage: 'complete',
+        message: `Language ${newLanguage} added successfully! ${totalKeys} keys translated.`,
+        progress: 100,
+        translated: totalKeys,
+        total: totalKeys
+      });
+      
       return { keysTranslated: totalKeys, totalKeys };
       
     } catch (error) {
+      progressCallback?.({
+        type: 'error',
+        stage: 'error',
+        message: `Error: ${(error as Error).message}`,
+        progress: 0
+      });
       throw new Error(`Failed to add new language: ${(error as Error).message}`);
     }
   }
@@ -402,7 +482,7 @@ export class TranslationManager {
   }
 
   // Translate a batch of keys
-  public async translateBatch(sourceLanguage: string, targetLanguage: string, batchSize: number = 50, offset: number = 0): Promise<number> {
+  public async translateBatch(sourceLanguage: string, targetLanguage: string, batchSize: number = 25, offset: number = 0): Promise<number> {
     const sourceData = this.loadLocale(sourceLanguage);
     const targetData = this.loadLocale(targetLanguage);
     

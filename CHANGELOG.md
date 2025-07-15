@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **📋 For detailed release information and migration guides, see [RELEASE-NOTES.md](RELEASE-NOTES.md)**
 
+## [2.3.1] - 2025-07-15
+
+### Added
+- Real-time progress tracking with Server-Sent Events (SSE) for translation operations
+- Live progress bars and timestamped logs during translation
+- Sample project with 500+ realistic translation keys for testing and demonstration
+- Progress callback system for translation methods
+
+### Changed
+- Optimized default batch size from 5 to 25 keys per batch for better performance
+- Simplified web UI by removing batch size configuration field
+- Streamlined translation interface with automatic optimal settings
+
+### Removed
+- Manual batch size selection from web interface (now uses optimized default)
+- Deprecated `startBatchTranslation` function (replaced with SSE-based approach)
+
+### Fixed
+- Improved user experience with real-time feedback instead of terminal-only logs
+- Enhanced translation reliability with optimized batch processing
+
 ## [2.3.0] - 2025-07-15
 
 ### Added

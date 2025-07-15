@@ -17,6 +17,7 @@ export class TranslationServer {
   private port: number;
   private translationManager: TranslationManager;
   private app: Application;
+  private progressClients: Map<string, Response> = new Map();
 
   constructor(config: ServerConfig = {}, port: number = 3001) {
     this.config = config;
@@ -25,6 +26,22 @@ export class TranslationServer {
     this.app = express();
     this.setupMiddleware();
     this.setupRoutes();
+  }
+
+  // Helper method to send progress updates to connected clients
+  private sendProgressUpdate(sessionId: string, data: any): void {
+    const client = this.progressClients.get(sessionId);
+    if (client) {
+      try {
+        client.write(`data: ${JSON.stringify({
+          ...data,
+          timestamp: new Date().toISOString()
+        })}\n\n`);
+      } catch (error) {
+        // Client disconnected, remove from map
+        this.progressClients.delete(sessionId);
+      }
+    }
   }
 
   private setupMiddleware(): void {
@@ -75,6 +92,52 @@ export class TranslationServer {
       }
     });
 
+    // Server-Sent Events endpoint for real-time progress updates
+    this.app.get('/api/progress/:sessionId', (req: Request, res: Response): void => {
+      const sessionId = req.params.sessionId;
+      
+      if (!sessionId) {
+        res.status(400).json({ error: 'Session ID is required' });
+        return;
+      }
+      
+      // Set SSE headers
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Cache-Control'
+      });
+
+      // Store client connection
+      this.progressClients.set(sessionId, res);
+
+      // Send initial connection confirmation
+      res.write(`data: ${JSON.stringify({ 
+        type: 'connected', 
+        message: 'Progress stream connected',
+        timestamp: new Date().toISOString()
+      })}\n\n`);
+
+      // Handle client disconnect
+      req.on('close', () => {
+        this.progressClients.delete(sessionId);
+      });
+
+      // Keep connection alive with periodic heartbeat
+      const heartbeat = setInterval(() => {
+        if (this.progressClients.has(sessionId)) {
+          res.write(`data: ${JSON.stringify({ 
+            type: 'heartbeat', 
+            timestamp: new Date().toISOString() 
+          })}\n\n`);
+        } else {
+          clearInterval(heartbeat);
+        }
+      }, 30000); // 30 second heartbeat
+    });
+
     this.app.post('/api/sync', async (req: Request, res: Response) => {
       try {
         const { sourceLang } = req.body;
@@ -105,7 +168,7 @@ export class TranslationServer {
 
     this.app.post('/api/add-language', async (req: Request, res: Response) => {
       try {
-        const { sourceLanguage, newLanguage } = req.body;
+        const { sourceLanguage, newLanguage, sessionId } = req.body;
         
         if (!sourceLanguage || !newLanguage) {
           return res.status(400).json({ 
@@ -113,8 +176,35 @@ export class TranslationServer {
             error: 'sourceLanguage and newLanguage are required' 
           });
         }
+
+        // Send initial progress update if sessionId provided
+        if (sessionId) {
+          this.sendProgressUpdate(sessionId, {
+            type: 'progress',
+            stage: 'starting',
+            message: `Starting translation from ${sourceLanguage} to ${newLanguage}...`,
+            progress: 0
+          });
+        }
         
-        const result = await this.translationManager.addNewLanguage(sourceLanguage, newLanguage);
+        const result = await this.translationManager.addNewLanguage(
+          sourceLanguage, 
+          newLanguage,
+          sessionId ? (progress: any) => this.sendProgressUpdate(sessionId, progress) : undefined
+        );
+
+        // Send completion update
+        if (sessionId) {
+          this.sendProgressUpdate(sessionId, {
+            type: 'complete',
+            stage: 'completed',
+            message: `✅ Translation completed! ${result.keysTranslated} keys translated.`,
+            progress: 100,
+            keysTranslated: result.keysTranslated,
+            totalKeys: result.totalKeys
+          });
+        }
+
         return res.json({ 
           success: true, 
           message: `Language ${newLanguage} added successfully`, 

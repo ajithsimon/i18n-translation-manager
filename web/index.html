@@ -294,18 +294,6 @@
                 </select>
             </div>
             
-            <div class="form-group">
-                <label for="batchSize">Translation Batch Size:</label>
-                <select id="batchSize">
-                    <option value="25">25 keys per batch</option>
-                    <option value="50" selected>50 keys per batch</option>
-                    <option value="100">100 keys per batch</option>
-                </select>
-                <small style="color: #666; display: block; margin-top: 5px;">
-                    Smaller batches are more reliable but take longer. Larger batches are faster but may hit API limits.
-                </small>
-            </div>
-            
             <button class="btn" onclick="addNewLanguage()">
                 <span id="addLanguageBtnText">Add Language & Start Translation</span>
             </button>
@@ -586,7 +574,6 @@
         async function addNewLanguage() {
             const sourceLanguage = document.getElementById('sourceLanguageForNew').value;
             const newLanguage = document.getElementById('newLanguageSelect').value;
-            const batchSize = parseInt(document.getElementById('batchSize').value);
             
             if (!sourceLanguage || !newLanguage) {
                 showMessage('error', 'Please select both source and target languages', 'addLanguageResult');
@@ -601,7 +588,56 @@
             
             // Show progress section
             document.getElementById('translationProgress').classList.remove('hidden');
-            document.getElementById('translationProgressText').textContent = 'Adding new language and translating...';
+            document.getElementById('translationProgressText').textContent = 'Initializing...';
+            
+            // Generate session ID for progress tracking
+            const sessionId = Math.random().toString(36).substring(7);
+            
+            // Setup Server-Sent Events for real-time progress
+            const eventSource = new EventSource(`/api/progress/${sessionId}`);
+            const progressFill = document.getElementById('translationProgressFill');
+            const progressText = document.getElementById('translationProgressText');
+            const progressLog = document.getElementById('translationLog');
+            
+            // Clear previous log entries
+            progressLog.innerHTML = '';
+            
+            eventSource.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'progress') {
+                    // Update progress bar
+                    progressFill.style.width = data.progress + '%';
+                    progressText.textContent = data.message;
+                    
+                    // Add log entry
+                    const logEntry = document.createElement('div');
+                    logEntry.style.padding = '2px 0';
+                    logEntry.style.fontSize = '0.9em';
+                    logEntry.innerHTML = `<span style="color: #666;">[${new Date().toLocaleTimeString()}]</span> ${data.message}`;
+                    
+                    if (data.stage === 'complete') {
+                        logEntry.style.color = '#28a745';
+                        logEntry.style.fontWeight = 'bold';
+                    } else if (data.stage === 'error') {
+                        logEntry.style.color = '#dc3545';
+                        logEntry.style.fontWeight = 'bold';
+                    }
+                    
+                    progressLog.appendChild(logEntry);
+                    progressLog.scrollTop = progressLog.scrollHeight;
+                } else if (data.type === 'error') {
+                    const logEntry = document.createElement('div');
+                    logEntry.style.color = '#dc3545';
+                    logEntry.style.fontWeight = 'bold';
+                    logEntry.textContent = `❌ Error: ${data.message}`;
+                    progressLog.appendChild(logEntry);
+                }
+            };
+            
+            eventSource.onerror = function(event) {
+                console.error('SSE connection error:', event);
+            };
             
             try {
                 const response = await fetch('/api/add-language', {
@@ -609,120 +645,52 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         sourceLanguage, 
-                        newLanguage
+                        newLanguage,
+                        sessionId
                     })
                 });
                 
                 const data = await response.json();
                 
+                // Close SSE connection
+                eventSource.close();
+                
                 if (data.success) {
-                    // Show success with actual translation count from API response
-                    const keysTranslated = data.keysTranslated || 0;
-                    const totalKeys = data.totalKeys || 0;
-                    
+                    // Success already handled by SSE progress updates
                     showMessage('success', `✅ Language ${popularLanguages[newLanguage]} added successfully!`, 'addLanguageResult');
-                    
-                    // Update progress to show completion with actual numbers
-                    const progressFill = document.getElementById('translationProgressFill');
-                    const progressText = document.getElementById('translationProgressText');
-                    const progressLog = document.getElementById('translationLog');
-                    
-                    progressFill.style.width = '100%';
-                    progressText.textContent = `🎉 Translation completed! ${keysTranslated} keys translated.`;
-                    
-                    // Clear and update log
-                    progressLog.innerHTML = '';
-                    const logEntry = document.createElement('div');
-                    logEntry.style.color = '#28a745';
-                    logEntry.style.fontWeight = 'bold';
-                    logEntry.textContent = `✅ Successfully translated ${keysTranslated}/${totalKeys} keys to ${popularLanguages[newLanguage]}`;
-                    progressLog.appendChild(logEntry);
                     
                     // Reload languages to update selects
                     await loadLanguages();
                 } else {
+                    // Handle error case
+                    progressFill.style.width = '0%';
+                    progressText.textContent = 'Error occurred';
+                    
+                    const logEntry = document.createElement('div');
+                    logEntry.style.color = '#dc3545';
+                    logEntry.style.fontWeight = 'bold';
+                    logEntry.textContent = `❌ Error: ${data.error}`;
+                    progressLog.appendChild(logEntry);
+                    
                     showMessage('error', 'Failed to add language: ' + data.error, 'addLanguageResult');
                 }
             } catch (error) {
+                // Close SSE connection on error
+                eventSource.close();
+                
+                progressFill.style.width = '0%';
+                progressText.textContent = 'Error occurred';
+                
+                const logEntry = document.createElement('div');
+                logEntry.style.color = '#dc3545';
+                logEntry.style.fontWeight = 'bold';
+                logEntry.textContent = `❌ Network Error: ${error.message}`;
+                progressLog.appendChild(logEntry);
+                
                 showMessage('error', 'Error: ' + error.message, 'addLanguageResult');
             } finally {
                 btn.textContent = originalText;
                 document.querySelector('#language-tab .btn').disabled = false;
-            }
-        }
-
-        async function startBatchTranslation(sourceLanguage, newLanguage, batchSize) {
-            const progressFill = document.getElementById('translationProgressFill');
-            const progressText = document.getElementById('translationProgressText');
-            const progressLog = document.getElementById('translationLog');
-            
-            progressText.textContent = 'Starting batch translation...';
-            progressLog.innerHTML = '';
-            
-            try {
-                // Get total keys count first
-                const statusResponse = await fetch(`/api/translation-status?source=${sourceLanguage}&target=${newLanguage}`);
-                const statusData = await statusResponse.json();
-                
-                if (!statusData.success) {
-                    throw new Error('Failed to get translation status');
-                }
-                
-                const totalKeys = statusData.totalKeys;
-                let processedKeys = 0;
-                
-                progressText.textContent = `Translating ${totalKeys} keys in batches of ${batchSize}...`;
-                
-                // Process in batches
-                for (let offset = 0; offset < totalKeys; offset += batchSize) {
-                    const batchResponse = await fetch('/api/translate-batch', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            sourceLanguage,
-                            targetLanguage: newLanguage,
-                            batchSize,
-                            offset
-                        })
-                    });
-                    
-                    const batchData = await batchResponse.json();
-                    
-                    if (batchData.success) {
-                        processedKeys += batchData.processed;
-                        const progress = Math.round((processedKeys / totalKeys) * 100);
-                        
-                        progressFill.style.width = progress + '%';
-                        progressText.textContent = `Translated ${processedKeys}/${totalKeys} keys (${progress}%)`;
-                        
-                        // Add to log
-                        const logEntry = document.createElement('div');
-                        logEntry.textContent = `✅ Batch ${Math.ceil(offset/batchSize) + 1}: Translated ${batchData.processed} keys`;
-                        progressLog.appendChild(logEntry);
-                        progressLog.scrollTop = progressLog.scrollHeight;
-                        
-                        // Small delay to prevent API overload
-                        if (offset + batchSize < totalKeys) {
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        }
-                    } else {
-                        throw new Error(`Batch translation failed: ${batchData.error}`);
-                    }
-                }
-                
-                progressText.textContent = `🎉 Translation completed! ${processedKeys} keys translated.`;
-                const logEntry = document.createElement('div');
-                logEntry.style.color = '#28a745';
-                logEntry.style.fontWeight = 'bold';
-                logEntry.textContent = `🎉 All translations completed successfully!`;
-                progressLog.appendChild(logEntry);
-                
-            } catch (error) {
-                progressText.textContent = `❌ Translation failed: ${error.message}`;
-                const logEntry = document.createElement('div');
-                logEntry.style.color = '#dc3545';
-                logEntry.textContent = `❌ Error: ${error.message}`;
-                progressLog.appendChild(logEntry);
             }
         }
     </script>

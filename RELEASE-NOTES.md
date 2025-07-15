@@ -1,5 +1,72 @@
 # Release Notes
 
+## Version 2.3.1 - Real-time Progress & Simplified UX
+*Released: July 2025*
+
+### 📡 Real-time Progress Tracking
+
+#### **Live Translation Feedback**
+- **Server-Sent Events (SSE)**: Real-time progress updates during translation operations
+- **Live Progress Bars**: Visual progress indicators with percentage completion
+- **Timestamped Logs**: Real-time translation logs with detailed status updates
+- **Session Management**: Unique session IDs for tracking individual translation processes
+
+#### **Enhanced User Experience**
+- **No More Terminal Watching**: Users see progress directly in the web interface
+- **Real-time Status Updates**: Live feedback on translation batches and completion
+- **Progress Callbacks**: Backend support for progress tracking throughout translation pipeline
+
+### 🎛️ Simplified Interface
+
+#### **Streamlined Configuration**
+- **Removed Batch Size Selection**: Eliminated confusing batch size dropdown from UI
+- **Optimized Default**: Automatic 25-key batch processing for optimal performance
+- **Cleaner Interface**: Simplified add language form with essential options only
+
+#### **Performance Optimizations**
+- **5x Faster Processing**: Increased batch size from 5 to 25 keys per batch
+- **Better API Limits**: Optimal batch size prevents rate limiting while maximizing speed
+- **Improved Reliability**: Balanced batch processing for stable translation operations
+
+### 📁 Comprehensive Sample Project
+
+#### **Ready-to-Test Environment**
+- **500+ Translation Keys**: Realistic, comprehensive test data from real applications
+- **Multiple Domains**: UI, forms, navigation, business workflows, and error messages
+- **Pre-configured Setup**: Complete example project structure for immediate testing
+- **Documentation**: Detailed README with usage examples and testing scenarios
+
+### 🔧 Technical Improvements
+
+#### **Backend Enhancements**
+- Added SSE endpoint `/api/progress/:sessionId` for real-time communication
+- Implemented progress callback system in translation methods
+- Enhanced `addNewLanguage()` and `translateMissingKeys()` with progress tracking
+- Added client connection management with automatic cleanup
+
+#### **Code Quality**
+- Removed deprecated `startBatchTranslation` function
+- Cleaned up unused UI components and JavaScript
+- Streamlined codebase with modern SSE-based approach
+- Improved TypeScript types for progress callbacks
+
+### 🆙 Upgrade Guide
+
+#### **Breaking Changes**
+- None - this is a backward-compatible patch release
+
+#### **New Features Available**
+1. **Real-time Progress**: Automatic when using web interface
+2. **Optimized Performance**: Automatic with new 25-key batch default
+3. **Sample Project**: Available in `examples/sample-project/`
+
+#### **Migration Notes**
+- No configuration changes required
+- Existing projects continue to work without modification
+- New batch size default (25) improves performance automatically
+
+---
+
 ## Version 2.3.0 - Enhanced Translation Experience
 *Released: January 2025*
 

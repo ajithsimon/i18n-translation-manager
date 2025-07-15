@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "Translation Manager",
+    "description": "A powerful tool for managing translations",
+    "welcome": "Welcome to our application"
+  },
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save"
+  }
+}

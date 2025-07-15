@@ -1,12 +1,34 @@
-# i18n-translation-manager## Recent Improvements
+# i18n-translation-manager
+
+## Recent I## What's New in v2.3.1
+
+- 📡 **Real-time Progress Tracking**: Live translation progress with Server-Sent Events (SSE)
+- 🎛️ **Simplified Interface**: Removed batch size configuration - now uses optimized default (25 keys)
+- ⚡ **Enhanced Performance**: Optimized batch processing from 5 to 25 keys per batch
+- 🧹 **Code Cleanup**: Removed deprecated UI components and streamlined codebase
+- 📁 **Sample Project**: Added comprehensive example project with 500+ translation keys
+- 🔧 **Better UX**: Streamlined web interface with real-time feedback and progress logs
+
+### Previous Releases
+
+#### v2.3.0
+- 🎯 **Enhanced Add Language**: Web UI now shows actual translation counts instead of "0 keys translated"
+- ⚡ **Optimized Performance**: Eliminated redundant API calls for 3x faster language addition
+- 🔧 **Improved API**: Enhanced endpoints with better response data and error handling
+- 🔷 **Full TypeScript Support**: Complete TypeScript implementation with type definitions
+- 📊 **Better Feedback**: Real-time translation progress with accurate statisticsents
 
 - 🎯 **Enhanced Translation Experience**: Optimized add language functionality with accurate progress feedback
 - ⚡ **Performance Optimizations**: Reduced API calls and improved response times
 - 🔷 **Full TypeScript Support**: Complete TypeScript implementation with type definitions
 - 🌍 **Universal Framework Support**: Works seamlessly with Vue.js, React, Angular, Next.js, Nuxt, Svelte, and more
 - 🚀 **Advanced Web Interface**: Intuitive web GUI for translation management
+- 📊 **Real-time Progress Tracking**: Live progress updates during translation operations
+- 🎛️ **Simplified Interface**: Streamlined UI with optimized default settings
 
-> **📋 [View Complete Release Notes](RELEASE-NOTES.md)** | **🔄 [View Changelog](CHANGELOG.md)** Pipeline](https://github.com/ajithsimon/i18n-translation-manager/workflows/CI/CD%20Pipeline/badge.svg)
+> **📋 [View Complete Release Notes](RELEASE-NOTES.md)** | **🔄 [View Changelog](CHANGELOG.md)**
+
+[![CI/CD Pipeline](https://github.com/ajithsimon/i18n-translation-manager/workflows/CI/CD%20Pipeline/badge.svg)](https://github.com/ajithsimon/i18n-translation-manager/actions)
 ![npm version](https://badge.fury.io/js/i18n-translation-manager.svg)
 ![Node.js Version](https://img.shields.io/node/v/i18n-translation-manager.svg)
 ![License](https://img.shields.io/npm/l/i18n-translation-manager.svg)
@@ -25,10 +47,11 @@ A powerful, framework-agnostic library that simplifies managing translations acr
 - 📊 **Translation Status**: Check completeness of translations across all languages
 - 🎯 **Nested Key Support**: Handles nested JSON objects with dot notation
 - 🚀 **CLI & Web GUI**: Both command-line and web-based interfaces
-- 🔧 **Framework-Agnostic**: Works with Vue.js, React, Angular, Next.js, Nuxt, Svelte, Node.js, and any project using JSON locale files
+- � **Real-time Progress**: Live progress tracking with Server-Sent Events (SSE)
+- �🔧 **Framework-Agnostic**: Works with Vue.js, React, Angular, Next.js, Nuxt, Svelte, Node.js, and any project using JSON locale files
 - 📦 **Universal**: Can be used across multiple projects, frameworks, and teams
 - 🔷 **TypeScript Support**: Full TypeScript implementation with type definitions
-- ⚡ **Optimized Performance**: Efficient API calls and reduced redundancy
+- ⚡ **Optimized Performance**: Efficient API calls with 25-key batch processing
 
 ## What's New in v2.3.0
 
@@ -74,7 +97,7 @@ export default {
   
   // Optional: Rate limiting for translation API
   rateLimiting: {
-    batchSize: 5,
+    batchSize: 25,
     delayBetweenBatches: 1000
   }
 };
@@ -108,6 +131,43 @@ i18n-translate server
 # Open http://localhost:3001 in your browser
 ```
 
+## 🚀 Try It Now - Sample Project
+
+Want to see the i18n Translation Manager in action? We've included a comprehensive sample project with 500+ translation keys:
+
+```bash
+# Clone the repository
+git clone https://github.com/ajithsimon/i18n-translation-manager.git
+cd i18n-translation-manager
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Try the sample project
+cd examples/sample-project
+node ../../dist/cli.js server
+```
+
+**Then open http://localhost:3001** to see:
+- ✅ **Real-time Translation Progress**: Watch live progress bars and logs with SSE streaming
+- ✅ **Optimized Performance**: 25-key batch processing for optimal speed and reliability
+- ✅ **Comprehensive Test Data**: 500+ realistic translation keys from real-world applications
+- ✅ **Multiple Language Support**: Add Spanish, French, German, Chinese, Arabic, and more
+- ✅ **Streamlined Interface**: Clean, simplified UI without complex configuration options
+- ✅ **Live Progress Logs**: Real-time translation updates with timestamps and status
+
+The sample project includes realistic translation keys for:
+- Application menus and navigation
+- User interface components  
+- Forms, tables, and modals
+- Business workflow messages
+- Error handling and notifications
+
+Perfect for testing, learning, and demonstrating the translation manager's capabilities!
+
 ## Configuration Options
 
 The `i18n.config.js` file supports the following options:
@@ -131,7 +191,7 @@ export default {
   
   // Rate limiting settings (optional)
   rateLimiting: {
-    batchSize: 5,
+    batchSize: 25,
     delayBetweenBatches: 1000
   }
 };
@@ -404,6 +464,3 @@ MIT License - see LICENSE file for details.
 For teams at DIH: Contact the development team for support and custom configurations.
 
 For external users: Please open an issue on the GitHub repository.
-# Fixed npm authentication in CI/CD pipeline
-
-Added NPM_TOKEN secret for automated publishing
