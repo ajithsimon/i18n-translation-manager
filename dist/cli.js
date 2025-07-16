@@ -3,7 +3,6 @@ import { TranslationManager } from './index.js';
 import { TranslationServer } from './server.js';
 import path from 'path';
 import fs from 'fs';
-// Find configuration file
 function findConfig() {
     const possiblePaths = [
         path.join(process.cwd(), 'i18n.config.js'),
@@ -18,11 +17,9 @@ function findConfig() {
     }
     return null;
 }
-// Load configuration
 async function loadConfig() {
     const configPath = findConfig();
     if (!configPath) {
-        // Default configuration for Vue.js projects
         return {
             localesPath: './src/i18n/locales',
             defaultSourceLang: 'en',
@@ -37,7 +34,6 @@ async function loadConfig() {
         return JSON.parse(fs.readFileSync(configPath, 'utf8'));
     }
 }
-// Main CLI function
 async function runCLI() {
     try {
         const config = await loadConfig();
@@ -156,7 +152,6 @@ Configuration options:
 🌐 Works with: Vue.js, React, Angular, Next.js, Nuxt, Svelte, Node.js, and any framework using JSON locale files
   `);
 }
-// Handle process termination gracefully
 process.on('SIGINT', () => {
     console.log('\n👋 Goodbye!');
     process.exit(0);
@@ -165,9 +160,7 @@ process.on('SIGTERM', () => {
     console.log('\n👋 Goodbye!');
     process.exit(0);
 });
-// Run CLI
 runCLI().catch((error) => {
     console.error('❌ Fatal error:', error.message);
     process.exit(1);
 });
-//# sourceMappingURL=cli.js.map

@@ -50,4 +50,3 @@ export declare class TranslationManager {
     getKeyCount(sourceLang?: string): number;
     translateBatch(sourceLanguage: string, targetLanguage: string, batchSize?: number, offset?: number): Promise<number>;
 }
-//# sourceMappingURL=index.d.ts.map

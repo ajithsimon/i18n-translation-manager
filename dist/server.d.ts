@@ -9,10 +9,9 @@ export declare class TranslationServer {
     private app;
     private progressClients;
     constructor(config?: ServerConfig, port?: number);
-    private setupMiddleware;
     private sendProgressUpdate;
+    private setupMiddleware;
     private setupRoutes;
     start(): Promise<void>;
     getApp(): Application;
 }
-//# sourceMappingURL=server.d.ts.map

@@ -16,60 +16,29 @@ export class TranslationServer {
         this.setupMiddleware();
         this.setupRoutes();
     }
+    sendProgressUpdate(sessionId, data) {
+        const client = this.progressClients.get(sessionId);
+        if (client) {
+            try {
+                client.write(`data: ${JSON.stringify({
+                    ...data,
+                    timestamp: new Date().toISOString()
+                })}\n\n`);
+            }
+            catch (error) {
+                this.progressClients.delete(sessionId);
+            }
+        }
+    }
     setupMiddleware() {
         this.app.use(cors());
         this.app.use(express.json());
         this.app.use(express.static(path.join(__dirname, '../web')));
     }
-    // Send progress update to SSE clients
-    sendProgressUpdate(sessionId, data) {
-        const client = this.progressClients.get(sessionId);
-        if (client && !client.destroyed) {
-            try {
-                client.write(`data: ${JSON.stringify(data)}\n\n`);
-            }
-            catch (error) {
-                console.error('Error sending SSE update:', error);
-                this.progressClients.delete(sessionId);
-            }
-        }
-    }
     setupRoutes() {
-        // SSE Progress endpoint
-        this.app.get('/api/progress/:sessionId', (req, res) => {
-            const { sessionId } = req.params;
-            if (!sessionId) {
-                res.status(400).json({ success: false, error: 'Session ID required' });
-                return;
-            }
-            // Set SSE headers
-            res.writeHead(200, {
-                'Content-Type': 'text/event-stream',
-                'Cache-Control': 'no-cache',
-                'Connection': 'keep-alive',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Cache-Control'
-            });
-            // Store client connection
-            this.progressClients.set(sessionId, res);
-            console.log(`📡 SSE client connected for session: ${sessionId}`);
-            // Send initial connection confirmation
-            res.write(`data: ${JSON.stringify({
-                type: 'connected',
-                message: 'Connected to progress stream',
-                sessionId
-            })}\n\n`);
-            // Handle client disconnect
-            req.on('close', () => {
-                this.progressClients.delete(sessionId);
-                console.log(`📡 SSE client disconnected for session: ${sessionId}`);
-            });
-        });
-        // Serve web GUI
         this.app.get('/', (req, res) => {
             res.sendFile(path.join(__dirname, '../web/index.html'));
         });
-        // API Routes
         this.app.get('/api/languages', (req, res) => {
             try {
                 const languages = this.translationManager.getSupportedLanguages();
@@ -83,7 +52,6 @@ export class TranslationServer {
             try {
                 const { lang } = req.params;
                 const { source, target } = req.query;
-                // Support both 'lang' param and 'target' query for flexibility
                 const targetLang = lang || target;
                 const status = this.translationManager.getTranslationStatus(source, targetLang);
                 res.json({ success: true, status });
@@ -92,7 +60,6 @@ export class TranslationServer {
                 res.status(500).json({ success: false, error: error.message });
             }
         });
-        // Alias for translation-status (alternative endpoint name)
         this.app.get('/api/translation-status', (req, res) => {
             try {
                 const { source, target } = req.query;
@@ -102,6 +69,40 @@ export class TranslationServer {
             catch (error) {
                 res.status(500).json({ success: false, error: error.message });
             }
+        });
+        this.app.get('/api/progress/:sessionId', (req, res) => {
+            const sessionId = req.params.sessionId;
+            if (!sessionId) {
+                res.status(400).json({ error: 'Session ID is required' });
+                return;
+            }
+            res.writeHead(200, {
+                'Content-Type': 'text/event-stream',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Cache-Control'
+            });
+            this.progressClients.set(sessionId, res);
+            res.write(`data: ${JSON.stringify({
+                type: 'connected',
+                message: 'Progress stream connected',
+                timestamp: new Date().toISOString()
+            })}\n\n`);
+            req.on('close', () => {
+                this.progressClients.delete(sessionId);
+            });
+            const heartbeat = setInterval(() => {
+                if (this.progressClients.has(sessionId)) {
+                    res.write(`data: ${JSON.stringify({
+                        type: 'heartbeat',
+                        timestamp: new Date().toISOString()
+                    })}\n\n`);
+                }
+                else {
+                    clearInterval(heartbeat);
+                }
+            }, 30000);
         });
         this.app.post('/api/sync', async (req, res) => {
             try {
@@ -138,11 +139,25 @@ export class TranslationServer {
                         error: 'sourceLanguage and newLanguage are required'
                     });
                 }
-                // Setup progress callback for real-time updates
-                const progressCallback = sessionId ? (progress) => {
-                    this.sendProgressUpdate(sessionId, progress);
-                } : undefined;
-                const result = await this.translationManager.addNewLanguage(sourceLanguage, newLanguage, progressCallback);
+                if (sessionId) {
+                    this.sendProgressUpdate(sessionId, {
+                        type: 'progress',
+                        stage: 'starting',
+                        message: `Starting translation from ${sourceLanguage} to ${newLanguage}...`,
+                        progress: 0
+                    });
+                }
+                const result = await this.translationManager.addNewLanguage(sourceLanguage, newLanguage, sessionId ? (progress) => this.sendProgressUpdate(sessionId, progress) : undefined);
+                if (sessionId) {
+                    this.sendProgressUpdate(sessionId, {
+                        type: 'complete',
+                        stage: 'completed',
+                        message: `✅ Translation completed! ${result.keysTranslated} keys translated.`,
+                        progress: 100,
+                        keysTranslated: result.keysTranslated,
+                        totalKeys: result.totalKeys
+                    });
+                }
                 return res.json({
                     success: true,
                     message: `Language ${newLanguage} added successfully`,
@@ -151,13 +166,6 @@ export class TranslationServer {
                 });
             }
             catch (error) {
-                // Send error through SSE if sessionId exists
-                if (req.body.sessionId) {
-                    this.sendProgressUpdate(req.body.sessionId, {
-                        type: 'error',
-                        message: error.message
-                    });
-                }
                 return res.status(500).json({ success: false, error: error.message });
             }
         });
@@ -191,7 +199,6 @@ export class TranslationServer {
                 res.status(500).json({ success: false, error: error.message });
             }
         });
-        // Health check endpoint
         this.app.get('/api/health', (req, res) => {
             res.json({
                 success: true,
@@ -199,7 +206,6 @@ export class TranslationServer {
                 timestamp: new Date().toISOString()
             });
         });
-        // 404 handler for API routes
         this.app.use('/api/*', (req, res) => {
             res.status(404).json({ success: false, error: 'API endpoint not found' });
         });
@@ -236,4 +242,3 @@ export class TranslationServer {
         return this.app;
     }
 }
-//# sourceMappingURL=server.js.map

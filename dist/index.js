@@ -13,11 +13,9 @@ export class TranslationManager {
             },
             ...config
         };
-        // Resolve absolute path
         this.localesPath = path.resolve(process.cwd(), this.config.localesPath);
         this.supportedLanguages = this.detectSupportedLanguages();
     }
-    // Dynamically detect supported languages from locale files
     detectSupportedLanguages() {
         const languages = {};
         try {
@@ -27,7 +25,6 @@ export class TranslationManager {
             }
             const files = fs.readdirSync(this.localesPath);
             for (const file of files) {
-                // Skip non-JSON files, hidden files, and excluded files
                 if (file.endsWith('.json') &&
                     !file.startsWith('.') &&
                     !this.config.excludeFiles.includes(file)) {
@@ -48,10 +45,8 @@ export class TranslationManager {
         }
         return languages;
     }
-    // Free Google Translate using unofficial API
     async translateText(text, targetLang, sourceLang = 'en') {
         try {
-            // Dynamic import for node-fetch
             const fetch = (await import('node-fetch')).default;
             const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
             const response = await fetch(url);
@@ -63,10 +58,9 @@ export class TranslationManager {
         }
         catch (error) {
             console.warn(`Translation failed for "${text}" to ${targetLang}:`, error.message);
-            return text; // Return original text if translation fails
+            return text;
         }
     }
-    // Get all keys from nested object
     getAllKeys(obj, prefix = '') {
         let keys = [];
         for (const key in obj) {
@@ -80,11 +74,9 @@ export class TranslationManager {
         }
         return keys;
     }
-    // Get value from nested object using dot notation
     getValue(obj, path) {
         return path.split('.').reduce((current, key) => current && current[key], obj);
     }
-    // Set value in nested object using dot notation
     setValue(obj, path, value) {
         const keys = path.split('.');
         const lastKey = keys.pop();
@@ -96,7 +88,6 @@ export class TranslationManager {
         }, obj);
         target[lastKey] = value;
     }
-    // Load locale file
     loadLocale(lang) {
         const filePath = path.join(this.localesPath, `${lang}.json`);
         if (!fs.existsSync(filePath)) {
@@ -110,11 +101,9 @@ export class TranslationManager {
             return {};
         }
     }
-    // Save locale file
     saveLocale(lang, data) {
         const filePath = path.join(this.localesPath, `${lang}.json`);
         try {
-            // Ensure directory exists
             fs.mkdirSync(path.dirname(filePath), { recursive: true });
             fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n', 'utf8');
             console.log(`✅ Saved ${lang}.json`);
@@ -123,7 +112,6 @@ export class TranslationManager {
             console.error(`Error saving ${lang}.json:`, error.message);
         }
     }
-    // Find missing translations
     findMissingTranslations(sourceData, targetData) {
         const sourceKeys = this.getAllKeys(sourceData);
         const missing = [];
@@ -135,7 +123,6 @@ export class TranslationManager {
         }
         return missing;
     }
-    // Translate missing keys
     async translateMissingKeys(sourceLang, targetLang, missingKeys, sourceData, targetData, progressCallback) {
         console.log(`\n🔄 Translating ${missingKeys.length} missing keys from ${sourceLang} to ${targetLang}...`);
         const batchSize = this.config.rateLimiting.batchSize;
@@ -144,8 +131,7 @@ export class TranslationManager {
             const batch = missingKeys.slice(i, i + batchSize);
             const batchNumber = Math.floor(i / batchSize) + 1;
             const totalBatches = Math.ceil(missingKeys.length / batchSize);
-            // Send progress update
-            const progress = Math.round(30 + ((i / missingKeys.length) * 60)); // 30-90% range
+            const progress = Math.round(30 + ((i / missingKeys.length) * 60));
             progressCallback?.({
                 type: 'progress',
                 stage: 'translating',
@@ -167,12 +153,10 @@ export class TranslationManager {
                 this.setValue(result, key, value);
                 console.log(`  ✓ ${key}: "${this.getValue(sourceData, key)}" → "${value}"`);
             });
-            // Delay between batches
             if (i + batchSize < missingKeys.length) {
                 await new Promise(resolve => setTimeout(resolve, this.config.rateLimiting.delayBetweenBatches));
             }
         }
-        // Send final progress update for translateMissingKeys
         progressCallback?.({
             type: 'progress',
             stage: 'translation-complete',
@@ -183,7 +167,6 @@ export class TranslationManager {
         });
         return result;
     }
-    // Sync all translations
     async syncTranslations(sourceLang) {
         sourceLang = sourceLang || this.config.defaultSourceLang;
         console.log(`🌍 Starting translation sync with ${sourceLang} as source language...\n`);
@@ -210,7 +193,6 @@ export class TranslationManager {
         }
         console.log('\n🎉 Translation sync completed!');
     }
-    // Add new key to all languages
     async addKey(keyPath, sourceValue, sourceLang) {
         sourceLang = sourceLang || this.config.defaultSourceLang;
         console.log(`\n➕ Adding new key: ${keyPath}`);
@@ -229,7 +211,6 @@ export class TranslationManager {
         }
         console.log('✅ Key added to all language files!');
     }
-    // Check translation status
     checkTranslations(sourceLang) {
         sourceLang = sourceLang || this.config.defaultSourceLang;
         console.log(`📊 Translation Status Report (source: ${sourceLang})\n`);
@@ -245,11 +226,9 @@ export class TranslationManager {
             console.log(`${targetLang}: ${totalKeys - missingKeys.length}/${totalKeys} (${completeness}%) - ${missingKeys.length} missing`);
         }
     }
-    // Get supported languages (for API)
     getSupportedLanguages() {
         return this.supportedLanguages;
     }
-    // Get translation status for a specific language (for API)
     getTranslationStatus(sourceLang, targetLang) {
         sourceLang = sourceLang || this.config.defaultSourceLang;
         const sourceData = this.loadLocale(sourceLang);
@@ -266,7 +245,6 @@ export class TranslationManager {
                 completeness: parseFloat(completeness)
             };
         }
-        // Return status for all languages
         const status = {};
         for (const lang of Object.keys(this.supportedLanguages)) {
             if (lang === sourceLang)
@@ -275,7 +253,6 @@ export class TranslationManager {
         }
         return status;
     }
-    // Add new language support by cloning from source language
     async addNewLanguage(sourceLanguage, newLanguage, progressCallback) {
         const sourceFilePath = path.join(this.localesPath, `${sourceLanguage}.json`);
         const newFilePath = path.join(this.localesPath, `${newLanguage}.json`);
@@ -286,17 +263,14 @@ export class TranslationManager {
             throw new Error(`Language file already exists: ${newLanguage}.json`);
         }
         try {
-            // Send progress update - file creation
             progressCallback?.({
                 type: 'progress',
                 stage: 'creating-file',
                 message: `Creating ${newLanguage}.json file...`,
                 progress: 10
             });
-            // Clone the source language file
             const sourceData = this.loadLocale(sourceLanguage);
             this.saveLocale(newLanguage, sourceData);
-            // Update supported languages
             this.supportedLanguages[newLanguage] = newLanguage;
             console.log(`✅ Language ${newLanguage} added successfully by cloning from ${sourceLanguage}`);
             progressCallback?.({
@@ -305,7 +279,6 @@ export class TranslationManager {
                 message: `Analyzing translation keys...`,
                 progress: 20
             });
-            // Automatically translate ALL keys in the new language (not just missing ones)
             console.log(`🚀 Starting automatic translation for ${newLanguage}...`);
             const allKeys = this.getAllKeys(sourceData);
             const totalKeys = allKeys.length;
@@ -317,7 +290,6 @@ export class TranslationManager {
                 progress: 30,
                 totalKeys
             });
-            // Force translation of all keys by treating them as "missing"
             const updatedData = await this.translateMissingKeys(sourceLanguage, newLanguage, allKeys, sourceData, {}, progressCallback);
             this.saveLocale(newLanguage, updatedData);
             console.log(`🎉 Translation completed for ${newLanguage}!`);
@@ -347,21 +319,18 @@ export class TranslationManager {
             throw new Error(`Failed to add new language: ${error.message}`);
         }
     }
-    // Get total key count for batch processing
     getKeyCount(sourceLang) {
         sourceLang = sourceLang || this.config.defaultSourceLang;
         const sourceData = this.loadLocale(sourceLang);
         return this.getAllKeys(sourceData).length;
     }
-    // Translate a batch of keys
     async translateBatch(sourceLanguage, targetLanguage, batchSize = 25, offset = 0) {
         const sourceData = this.loadLocale(sourceLanguage);
         const targetData = this.loadLocale(targetLanguage);
-        // Get all keys and select the batch
         const allKeys = this.getAllKeys(sourceData);
         const batchKeys = allKeys.slice(offset, offset + batchSize);
         if (batchKeys.length === 0) {
-            return 0; // No more keys to process
+            return 0;
         }
         let translatedCount = 0;
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -370,27 +339,20 @@ export class TranslationManager {
             try {
                 const sourceText = this.getValue(sourceData, key);
                 const existingTranslation = this.getValue(targetData, key);
-                // Skip if translation already exists
                 if (existingTranslation && existingTranslation !== sourceText) {
                     continue;
                 }
-                // Translate the text
                 const translatedText = await this.translateText(sourceText, sourceLanguage, targetLanguage);
-                // Set the translated value
                 this.setValue(targetData, key, translatedText);
                 translatedCount++;
-                // Small delay to prevent API overload
                 await delay(100);
             }
             catch (error) {
                 console.error(`❌ Error translating key ${key}:`, error.message);
-                // Continue with next key instead of failing the entire batch
             }
         }
-        // Save the updated target language file
         this.saveLocale(targetLanguage, targetData);
         console.log(`✅ Batch complete: translated ${translatedCount}/${batchKeys.length} keys for ${targetLanguage}`);
         return translatedCount;
     }
 }
-//# sourceMappingURL=index.js.map
