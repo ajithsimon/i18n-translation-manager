@@ -1,6 +1,6 @@
 # i18n-translation-manager
 
-## Recent I## What's New in v2.3.1
+### What's New in v2.3.1
 
 - 📡 **Real-time Progress Tracking**: Live translation progress with Server-Sent Events (SSE)
 - 🎛️ **Simplified Interface**: Removed batch size configuration - now uses optimized default (25 keys)
