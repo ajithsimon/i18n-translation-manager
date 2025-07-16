@@ -1,6 +1,6 @@
 {
   "name": "i18n-translation-manager",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "type": "module",
   "description": "Universal automated translation management tool for i18n projects with dynamic language detection - works with Vue.js, React, Angular, Node.js, and any framework using JSON locale files",
   "main": "dist/index.js",
@@ -10,18 +10,19 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:prod": "tsc -p tsconfig.prod.json",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "dev": "npm run build && node dist/cli.js",
     "start": "node dist/cli.js",
     "server": "npm run build && node dist/cli.js server 3000",
     "server:dev": "npm run build && node --watch dist/cli.js server 3000",
-    "prepublishOnly": "npm run clean && npm run build && echo 'Publishing i18n-translation-manager...'",
-    "release:patch": "npm run clean && npm run build && npm version patch && git push && git push --tags",
-    "release:minor": "npm run clean && npm run build && npm version minor && git push && git push --tags",
-    "release:major": "npm run clean && npm run build && npm version major && git push && git push --tags",
+    "prepublishOnly": "npm run clean && npm run build:prod && echo 'Publishing optimized i18n-translation-manager...'",
+    "release:patch": "npm run clean && npm run build:prod && npm version patch && git push && git push --tags",
+    "release:minor": "npm run clean && npm run build:prod && npm version minor && git push && git push --tags",
+    "release:major": "npm run clean && npm run build:prod && npm version major && git push && git push --tags",
     "release:custom": "npm version",
-    "pipeline:build": "npm run clean && npm run build && npm pack --dry-run",
+    "pipeline:build": "npm run clean && npm run build:prod && npm pack --dry-run",
     "pipeline:check": "npm run pipeline:build",
     "publish:check": "npm run clean && npm run build && npm publish --dry-run",
     "publish:manual": "npm run pipeline:check && npm publish",
@@ -51,7 +52,7 @@
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^5.1.0",
+    "express": "^4.18.2",
     "node-fetch": "^3.3.2"
   },
   "engines": {
@@ -64,9 +65,7 @@
   "files": [
     "dist/",
     "web/",
-    "README.md",
-    "TYPESCRIPT.md",
-    "DEVELOPMENT.md"
+    "README.md"
   ],
   "devDependencies": {
     "@types/cors": "^2.8.19",

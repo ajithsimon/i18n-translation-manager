@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **📋 For detailed release information and migration guides, see [RELEASE-NOTES.md](RELEASE-NOTES.md)**
 
+## [2.3.2] - 2025-07-16
+
+### Changed
+- Optimized npm package size by 45% (121KB → 67KB unpacked, 27KB → 17KB packed)
+- Excluded source maps from production builds (saves ~30KB)
+- Minified web interface HTML by 47% (27KB → 14KB)
+- Streamlined package files to include only essential components
+
+### Removed  
+- Development documentation files (DEVELOPMENT.md, TYPESCRIPT.md) from npm package
+- Source maps and declaration maps from production builds
+- Unnecessary documentation reducing package bloat
+
+### Technical
+- Added production build pipeline with HTML minification
+- Implemented selective file inclusion for npm packaging
+- Enhanced build scripts for optimized releases
+
 ## [2.3.1] - 2025-07-15
 
 ### Added

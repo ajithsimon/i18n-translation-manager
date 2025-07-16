@@ -37,9 +37,7 @@ bower_components
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 build/Release
 .DS_Store
-
-# TypeScript build output - generated during npm publish
-dist/
+# /dist - REMOVED: dist/ should be committed for TypeScript packages
 
 # Dependency directories
 node_modules/
@@ -85,6 +83,6 @@ typings/
 
 # TypeScript
 *.tsbuildinfo
-# Build output is generated during npm publish
+# Note: dist/ should NOT be ignored - it's needed for publishing
 src/**/*.js
 src/**/*.js.map
