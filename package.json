@@ -10,24 +10,12 @@
   },
   "scripts": {
     "build": "tsc",
-    "build:prod": "tsc -p tsconfig.prod.json",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
     "dev": "npm run build && node dist/cli.js",
     "start": "node dist/cli.js",
     "server": "npm run build && node dist/cli.js server 3000",
-    "server:dev": "npm run build && node --watch dist/cli.js server 3000",
-    "prepublishOnly": "npm run clean && npm run build:prod && echo 'Publishing optimized i18n-translation-manager...'",
-    "release:patch": "npm run clean && npm run build:prod && npm version patch && git push && git push --tags",
-    "release:minor": "npm run clean && npm run build:prod && npm version minor && git push && git push --tags",
-    "release:major": "npm run clean && npm run build:prod && npm version major && git push && git push --tags",
-    "release:custom": "npm version",
-    "pipeline:build": "npm run clean && npm run build:prod && npm pack --dry-run",
-    "pipeline:check": "npm run pipeline:build",
-    "publish:check": "npm run clean && npm run build && npm publish --dry-run",
-    "publish:manual": "npm run pipeline:check && npm publish",
-    "ci:local": "npm run pipeline:check && echo 'Local CI checks passed!'",
-    "release:help": "echo 'Release commands:\\n  npm run release:patch  - 2.0.0 → 2.0.1\\n  npm run release:minor  - 2.0.0 → 2.1.0\\n  npm run release:major  - 2.0.0 → 3.0.0\\n  npm run ci:local      - Run local CI checks\\n  npm run publish:check - Test publish without uploading'"
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "keywords": [
     "i18n",
