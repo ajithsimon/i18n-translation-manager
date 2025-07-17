@@ -368,8 +368,18 @@ export class TranslationManager {
     // Return status for all languages
     const status: { [key: string]: TranslationStatus } = {};
     for (const lang of Object.keys(this.supportedLanguages)) {
-      if (lang === sourceLang) continue;
-      status[lang] = this.getTranslationStatus(sourceLang, lang) as TranslationStatus;
+      if (lang === sourceLang) {
+        // Include source language with 100% completeness
+        status[lang] = {
+          language: lang,
+          total: totalKeys,
+          translated: totalKeys,
+          missing: 0,
+          completeness: 100
+        };
+      } else {
+        status[lang] = this.getTranslationStatus(sourceLang, lang) as TranslationStatus;
+      }
     }
     
     return status;
