@@ -484,7 +484,7 @@
                 const response = await fetch('/api/add-key', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ key, value, sourceLang })
+                    body: JSON.stringify({ keyPath: key, sourceValue: value, sourceLang })
                 });
                 
                 const data = await response.json();

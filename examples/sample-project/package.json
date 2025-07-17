@@ -1,33 +1,33 @@
 {
-  "name": "i18n-translation-manager-sample",
-  "version": "1.0.0",
-  "description": "Sample project demonstrating i18n Translation Manager features",
-  "private": true,
-  "scripts": {
-    "translate:server": "node ../../dist/cli.js server",
-    "translate:status": "node ../../dist/cli.js status",
-    "translate:sync": "node ../../dist/cli.js sync",
-    "translate:add-spanish": "node ../../dist/cli.js add-language en es",
-    "translate:add-french": "node ../../dist/cli.js add-language en fr",
-    "translate:add-german": "node ../../dist/cli.js add-language en de"
-  },
-  "keywords": [
-    "i18n",
-    "translation",
-    "localization",
-    "sample",
-    "demo"
-  ],
-  "author": "i18n Translation Manager",
-  "license": "MIT",
-  "devDependencies": {},
-  "dependencies": {},
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ajithsimon/i18n-translation-manager.git",
-    "directory": "examples/sample-project"
-  }
+    "name": "i18n-translation-manager-sample",
+    "version": "1.0.0",
+    "description": "Sample project demonstrating i18n Translation Manager features",
+    "private": true,
+    "scripts": {
+        "translate:server": "cd ../.. && npm run build && cd examples/sample-project && node ../../dist/cli.js server",
+        "translate:status": "cd ../.. && npm run build && cd examples/sample-project && node ../../dist/cli.js status",
+        "translate:sync": "cd ../.. && npm run build && cd examples/sample-project && node ../../dist/cli.js sync",
+        "translate:add-spanish": "cd ../.. && npm run build && cd examples/sample-project && node ../../dist/cli.js add-language en es",
+        "translate:add-french": "cd ../.. && npm run build && cd examples/sample-project && node ../../dist/cli.js add-language en fr",
+        "translate:add-german": "cd ../.. && npm run build && cd examples/sample-project && node ../../dist/cli.js add-language en de"
+    },
+    "keywords": [
+        "i18n",
+        "translation",
+        "localization",
+        "sample",
+        "demo"
+    ],
+    "author": "i18n Translation Manager",
+    "license": "MIT",
+    "devDependencies": {},
+    "dependencies": {},
+    "engines": {
+        "node": ">=16.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ajithsimon/i18n-translation-manager.git",
+        "directory": "examples/sample-project"
+    }
 }
