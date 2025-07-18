@@ -1,7 +1,42 @@
 # Release Notes
 
-## Version 2.3.1 - Real-time Progress & Simplified UX
-*Released: July 2025*
+## Version 2.3.3 - Critical UI Fixes & Enhanced Status Display
+*Released: July 18, 2025*
+
+### 🐛 Critical Bug Fixes
+
+#### **Translation Status Display**
+- **Fixed Missing Source Language**: English (source language) now appears in Translation Status overview
+- **Complete Language Coverage**: Status page shows all supported languages including the source language
+- **100% Source Completeness**: Source language correctly displays as 100% complete
+
+#### **Web Interface Parameter Alignment**
+- **Fixed Add Key Functionality**: Resolved parameter mismatch between frontend and backend
+- **API Consistency**: Synchronized `keyPath`/`sourceValue` parameters across web UI and server
+- **Error Resolution**: Eliminated "keyPath and sourceValue are required" errors
+
+### 🔧 Technical Improvements
+
+#### **Frontend-Backend Synchronization**
+- **Parameter Naming**: Aligned web interface to use correct API parameter names
+- **Error Handling**: Improved validation and error messages for key addition
+- **Status Reporting**: Enhanced translation status endpoint to include source language
+
+#### **User Experience Enhancements**
+- **Complete Overview**: Users can now see status of ALL languages in their project
+- **Visual Consistency**: Source language properly represented with completion metrics
+- **Reduced Confusion**: Clear display of translation completeness across all supported languages
+
+### 📊 Impact on Users
+
+- **Web UI Users**: Add key functionality now works correctly without parameter errors
+- **Status Monitoring**: Complete visibility into all language translation status
+- **Project Management**: Better oversight of translation completeness across the entire project
+
+---
+
+## Version 2.3.2 - Package Optimization & Build Improvements
+*Released: July 16, 2025*
 
 ### 📡 Real-time Progress Tracking
 

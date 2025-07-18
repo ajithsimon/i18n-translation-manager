@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **📋 For detailed release information and migration guides, see [RELEASE-NOTES.md](RELEASE-NOTES.md)**
 
+## [2.3.3] - 2025-07-17
+
+### Fixed
+- 🐛 **Translation Status UI**: Fixed source language tile (English) missing from Translation Status page
+- 🐛 **Web Interface**: Fixed parameter name mismatch in add key functionality (keyPath/sourceValue vs key/value)
+- 🔧 **API Consistency**: Improved error handling and parameter validation in key addition endpoint
+
+### Improved
+- 🎨 **User Experience**: Source language now properly displayed in status overview with 100% completeness
+- 🔗 **Frontend-Backend Alignment**: Better synchronization between web UI and API parameter expectations
+- 📊 **Status Reporting**: Complete language status overview now includes all supported languages
+
 ## [2.3.2] - 2025-07-16
 
 ### Changed
