@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **📋 For detailed release information and migration guides, see [RELEASE-NOTES.md](RELEASE-NOTES.md)**
 
+## [3.0.0] - 2025-12-23
+
+### 🚀 Major Release: Smart Sync with Intelligent Change Detection
+
+#### Added
+- ✨ **Smart Sync**: Automatic detection of modified translation keys
+- 💾 **Cache System**: Tracks source language state to detect changes (`.i18n-sync-cache.json`)
+- 🎯 **Selective Translation**: Only translates modified/new keys (200x faster for typical workflows)
+- 📊 **Accurate Reporting**: Categorizes keys as modified, new, or missing
+- 🔄 **Force Mode**: Keeps original `--force` flag for complete re-translation
+
+#### Changed
+- **BREAKING**: Default sync behavior now uses smart detection (only translates changed keys)
+- **Performance**: Dramatically improved sync speed for large projects (1000+ keys)
+- **Reporting**: Enhanced progress messages with categorized change types
+
+#### Improved
+- 🎨 **Better Categorization**: Distinguishes between modified, new, and missing keys
+- 🔧 **TypeScript Config**: Updated to modern `moduleResolution: "bundler"`
+- 📝 **Documentation**: Added comprehensive SMART-SYNC.md guide
+- 🧹 **Code Quality**: Refactored counting logic for accuracy
+
+#### Migration Guide
+- Default `sync` command now uses smart detection (no changes needed)
+- Use `sync --force` for complete re-translation (same as before)
+- Cache files automatically gitignored (no manual setup required)
+- First sync establishes baseline, subsequent syncs are incremental
+
+#### Performance Impact
+**Example: 1000 keys × 7 languages, modify 5 keys**
+- Before: 7,000 translations (~7 minutes)
+- After: 35 translations (~2 seconds)
+- **Result: 200x faster!** ⚡
+
 ## [2.3.3] - 2025-07-17
 
 ### Fixed

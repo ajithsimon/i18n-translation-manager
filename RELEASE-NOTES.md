@@ -1,5 +1,254 @@
 # Release Notes
 
+## Version 3.0.0 - Smart Sync: Intelligent Change Detection 🚀
+*Released: December 23, 2025*
+
+### 🎉 Major Release Highlights
+
+This is a **major release** introducing **Smart Sync**, a revolutionary feature that dramatically improves translation performance for large projects by automatically detecting which keys have been modified.
+
+### ✨ Smart Sync: The Game Changer
+
+#### **Intelligent Change Detection**
+- **Automatic Detection**: Identifies modified translation keys since last sync
+- **Selective Translation**: Only translates changed keys, not the entire project
+- **Cache-Based Tracking**: Maintains state in `.i18n-sync-cache.json`
+- **200x Performance Boost**: Typical workflows are dramatically faster
+
+#### **How It Works**
+```bash
+# First sync - establishes baseline
+i18n-translate sync
+# Creates cache: .i18n-sync-cache.json
+
+# Modify 5 keys in English
+
+# Second sync - only translates changes
+i18n-translate sync
+# Translates: 5 keys × 7 languages = 35 translations (instead of 7,000!)
+```
+
+### 📊 Performance Comparison
+
+**Scenario: 1000 keys, 7 languages, modify 5 keys**
+
+| Version | Keys Translated | API Calls | Time | Improvement |
+|---------|----------------|-----------|------|-------------|
+| **v2.x** | 7,000 | 7,000 | ~7 min | - |
+| **v3.0** | 35 | 35 | ~2 sec | **200x faster** ⚡ |
+
+**Real-World Impact:**
+- Modify 1% of keys → 99% reduction in API calls
+- Modify 5% of keys → 95% reduction in API calls
+- Modify 10% of keys → 90% reduction in API calls
+
+### 🎯 Key Features
+
+#### **Smart Detection Categories**
+The system accurately categorizes changes:
+
+1. **📝 Modified Keys** - Existing keys with changed values
+   ```
+   "save": "Save" → "Save Changes"
+   ```
+
+2. **🆕 New Keys** - Keys added to source language
+   ```
+   Added: "buttons.refresh": "Refresh Page"
+   ```
+
+3. **➕ Missing Keys** - Keys not in target language
+   ```
+   Missing in French: "buttons.submit"
+   ```
+
+#### **Cache System**
+- **Location**: `<localesPath>/.i18n-sync-cache.json`
+- **Auto-Generated**: Created after first successful sync
+- **Auto-Ignored**: Automatically added to `.gitignore`
+- **Safe**: Each developer maintains their own local cache
+
+#### **Force Mode (Backward Compatible)**
+Original force mode still available for complete re-translation:
+```bash
+i18n-translate sync --force  # Re-translates ALL keys
+```
+
+**When to use force mode:**
+- Testing translation quality
+- Debugging translation issues
+- After switching translation services
+- Cache is corrupted or outdated
+
+### 🔄 Breaking Changes
+
+#### **Default Sync Behavior**
+- **v2.x**: Always translated all missing keys
+- **v3.0**: Uses smart detection by default
+
+**Impact**: Positive! Your syncs are now much faster with no code changes needed.
+
+#### **Migration Path**
+**No changes required!** The tool automatically:
+1. Creates cache on first sync
+2. Uses smart detection on subsequent syncs
+3. Falls back to full sync if no cache exists
+
+### 🛠️ Technical Improvements
+
+#### **Code Refactoring**
+- **Improved Counting Logic**: Accurate categorization of change types
+- **TypeScript Modernization**: Updated to `moduleResolution: "bundler"`
+- **Better Error Handling**: Enhanced cache loading and validation
+- **Optimized Performance**: Reduced redundant operations
+
+#### **Enhanced Reporting**
+Detailed progress messages:
+```
+🎯 Processing ar...
+📝 Found 3 modified key(s) in source
+🆕 Found 2 new key(s) in source
+➕ Found 1 missing key(s) in target
+📋 Total: 6 key(s) to translate in ar.json
+```
+
+### 📚 New Documentation
+
+#### **Comprehensive Guide**
+- **[SMART-SYNC.md](docs/SMART-SYNC.md)**: Complete guide to smart sync
+  - How it works
+  - Performance comparisons
+  - Best practices
+  - Troubleshooting
+  - Migration guide
+
+#### **Updated README**
+- Smart sync feature documentation
+- Performance metrics
+- Usage examples
+- Cache management guide
+
+### 🎨 User Experience
+
+#### **Faster Development Workflow**
+```bash
+# Before (v2.x)
+# Modify 5 keys → Wait 7 minutes
+
+# After (v3.0)
+# Modify 5 keys → Wait 2 seconds ⚡
+```
+
+#### **Clear Progress Reporting**
+```
+📝 Found 3 modified key(s) in source
+🆕 Found 2 new key(s) in source
+📋 Total: 5 key(s) to translate
+
+🔄 Translating 5 keys from en to zh...
+  ✓ buttons.save: "Save Changes" → "保存更改"
+  ✓ buttons.delete: "Delete" → "删除"
+  ...
+
+💾 Sync state saved to cache
+🎉 Translation sync completed!
+```
+
+### 🧪 Testing
+
+**Thoroughly tested scenarios:**
+- ✅ Fresh sync (no cache) - establishes baseline
+- ✅ No changes - shows "up to date"
+- ✅ Single modified key - translates only that key
+- ✅ Multiple modified keys - batches efficiently
+- ✅ New key added - detects and translates
+- ✅ Mixed changes - categorizes accurately
+- ✅ Failed translations - retries on next sync
+- ✅ Force mode - complete re-translation
+
+### 🔍 Cache Management
+
+#### **Automatic Git Integration**
+```gitignore
+# Auto-added to .gitignore
+**/.i18n-sync-cache.json
+```
+
+#### **Manual Cache Operations**
+```bash
+# View cache
+cat src/i18n/locales/.i18n-sync-cache.json
+
+# Clear cache (force fresh sync)
+rm src/i18n/locales/.i18n-sync-cache.json
+i18n-translate sync
+
+# Or use force mode
+i18n-translate sync --force
+```
+
+### 🌟 Why This Matters
+
+#### **For Small Projects (100 keys)**
+- Modest improvement: 10-20 seconds saved per sync
+- Benefit: Smoother development workflow
+
+#### **For Medium Projects (500 keys)**
+- Significant improvement: 1-2 minutes saved per sync
+- Benefit: Much faster iteration cycles
+
+#### **For Large Projects (1000+ keys)**
+- **Massive improvement: 5-10 minutes saved per sync**
+- **Benefit: Game-changing productivity boost**
+- **Impact: Team can make translation updates frequently without waiting**
+
+### 🚀 Upgrade Instructions
+
+```bash
+# Update to v3.0.0
+npm install -g i18n-translation-manager@3.0.0
+
+# Or in your project
+npm install --save-dev i18n-translation-manager@3.0.0
+
+# First sync (establishes cache)
+i18n-translate sync
+
+# Future syncs are now smart!
+i18n-translate sync  # Only translates changes
+```
+
+### 💡 Best Practices
+
+1. **Regular Syncs**: Run sync frequently to keep translations up-to-date
+2. **Review Changes**: Check git diff before committing translations
+3. **Trust the Cache**: Let smart detection do its job
+4. **Force When Needed**: Use `--force` for testing or debugging only
+5. **Team Workflow**: Each developer's cache tracks their own changes
+
+### 🐛 Bug Fixes & Improvements
+
+- Fixed TypeScript deprecation warning (moduleResolution)
+- Improved counting logic for overlapping changes
+- Enhanced error messages for failed translations
+- Better handling of missing target keys
+- Optimized cache loading and saving
+
+### 🎯 What's Next
+
+Future enhancements under consideration:
+- Translation memory for better quality
+- Multi-service support (DeepL, AWS Translate)
+- Translation validation and review workflows
+- Automated translation testing
+- CLI interactive mode
+
+### 🙏 Acknowledgments
+
+Thanks to all users who requested faster sync times for large projects. This release directly addresses that need with a 200x performance improvement!
+
+---
+
 ## Version 2.3.3 - Critical UI Fixes & Enhanced Status Display
 *Released: July 18, 2025*
 
