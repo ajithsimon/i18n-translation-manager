@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **📋 For detailed release information and migration guides, see [RELEASE-NOTES.md](RELEASE-NOTES.md)**
 
+## [3.1.0] - 2025-12-23
+
+### 🎯 Major Simplification: Back to Basics + Git-Based Smart Sync
+
+#### Changed
+- **MAJOR**: Reverted `sync` command to simple v2.x behavior (translate missing/empty keys only)
+- **Removed**: All cache-based change detection (no more `.i18n-sync-cache.json` files)
+- **Simplified**: Predictable, reliable sync behavior by default
+
+#### Added
+- ✨ **NEW Command**: `sync-modified` - Git-based change detection for fast selective updates
+- 🔍 **Git Integration**: Uses `git diff HEAD` to detect modified keys in source language
+- 📊 **Two Approaches**: Choose between simple sync (all missing) or smart sync-modified (git changes)
+
+#### Why This Change?
+v3.0.x introduced cache-based Smart Sync which had several issues:
+- Re-translated all keys on first install (massive git diffs)
+- Complex cache logic with edge cases
+- Users preferred simpler, more predictable behavior
+
+v3.1.0 provides the best of both worlds:
+- **`sync`**: Simple, reliable, works everywhere (like v2.x)
+- **`sync-modified`**: Fast git-based detection for when you need it
+
+#### Migration from v3.0.x
+- `sync` now works like v2.x (translates missing keys, not "modified" keys)
+- Delete `.i18n-sync-cache.json` files (no longer used)
+- Use `sync-modified` for git-based selective translation
+- Git repository required for `sync-modified` command
+
+#### Usage Examples
+```bash
+# Simple sync - translate missing/empty keys (default, reliable)
+i18n-tm sync
+
+# Git-based sync - translate only modified keys from git diff
+i18n-tm sync-modified
+
+# Force complete re-translation
+i18n-tm sync --force
+```
+
 ## [3.0.1] - 2025-12-23
 
 ### Fixed

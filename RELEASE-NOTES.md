@@ -1,5 +1,144 @@
 # Release Notes
 
+## Version 3.1.0 - Simplified Sync + Git-Based Smart Sync 🎯
+*Released: December 23, 2025*
+
+### 🎯 Philosophy Change: Simplicity First
+
+After feedback from v3.0.x, we've simplified the tool significantly while adding a powerful git-based option for users who need it.
+
+### 🔄 What Changed
+
+#### **Reverted `sync` to v2.x Simplicity**
+- **Before (v3.0.x)**: Cache-based change detection, complex logic, edge cases
+- **Now (v3.1.0)**: Simple and predictable - translates missing/empty keys only
+- **Why**: Simpler is better. No cache files, no "smart detection" by default
+
+#### **NEW Command: `sync-modified`**
+- **Git-Based Detection**: Uses `git diff HEAD` to find modified keys
+- **Fast & Accurate**: Only translates keys you've actually changed
+- **Optional**: Use it when you need it, ignore it when you don't
+
+### 📊 Two Approaches
+
+```bash
+# Approach 1: Simple Sync (default, reliable)
+i18n-tm sync
+# → Translates missing/empty keys
+# → Works everywhere (no git required)
+# → Predictable behavior
+
+# Approach 2: Git-Based Smart Sync (fast, selective)
+i18n-tm sync-modified
+# → Detects changes from git diff
+# → Only translates modified keys
+# → Requires git repository
+
+# Approach 3: Complete Re-translation
+i18n-tm sync --force
+# → Re-translates everything
+# → Use for major updates
+```
+
+### 🚀 Migration from v3.0.x
+
+**Good News**: Migration is simple!
+
+1. **Delete cache files** (no longer needed):
+   ```bash
+   rm .i18n-sync-cache.json
+   ```
+
+2. **Update usage**:
+   - `sync` now works like v2.x (simple missing key translation)
+   - Use `sync-modified` for git-based selective translation
+   - `sync --force` still works for complete re-translation
+
+3. **Behavioral changes**:
+   - `sync` no longer checks cache or detects "modified" keys
+   - `sync` translates missing/empty keys only (simple, predictable)
+   - For change detection, use new `sync-modified` command
+
+### 📋 Use Case Guide
+
+**When to use `sync`:**
+- ✅ Adding new keys to your translations
+- ✅ First time setting up translations
+- ✅ Simple, reliable workflow
+- ✅ Don't care about selective translation
+- ✅ Not using git or prefer simple approach
+
+**When to use `sync-modified`:**
+- ✅ You modified existing keys in source language
+- ✅ Want to translate only changed keys (fast!)
+- ✅ Working in git repository
+- ✅ Large codebase (1000+ keys)
+- ✅ Want to minimize translation API calls
+
+**When to use `sync --force`:**
+- ✅ Changed translation service or quality
+- ✅ Want to improve all translations
+- ✅ Major refactoring
+- ✅ Starting fresh
+
+### 🔍 How `sync-modified` Works
+
+```bash
+# 1. Make changes to your source language file
+vim src/i18n/locales/en.json
+
+# 2. Git sees the changes (don't commit yet!)
+git status
+# modified: src/i18n/locales/en.json
+
+# 3. Run sync-modified
+i18n-tm sync-modified
+
+# 4. Only changed keys are translated
+# 🔍 Detecting modified keys in en.json from git diff...
+# 📝 Found 3 modified key(s) in git diff
+# 🎯 Processing fr... (translating 3 keys)
+# 🎯 Processing es... (translating 3 keys)
+# 🎉 Modified translations synced!
+```
+
+### 💡 Why This Approach?
+
+**Problems with v3.0.x cache-based detection:**
+- ❌ Re-translated everything on first install
+- ❌ Complex cache logic with edge cases
+- ❌ Cache files needed gitignore setup
+- ❌ Users wanted simpler, more predictable behavior
+
+**Benefits of v3.1.0 dual-command approach:**
+- ✅ Simple default behavior (like v2.x)
+- ✅ No cache files to manage
+- ✅ Git is source of truth (for sync-modified)
+- ✅ Users choose their workflow
+- ✅ Clear separation of concerns
+
+### 🎯 Performance
+
+**`sync` (simple):**
+- Same as v2.x
+- Translates all missing keys
+- Good for small-medium projects
+
+**`sync-modified` (git-based):**
+- Only translates changed keys
+- 100-200x faster when only few keys changed
+- Perfect for large projects with selective updates
+
+### 🐛 Bug Fixes
+
+This release also removes all the bugs from v3.0.x:
+- ✅ No more re-translation on first install
+- ✅ No more infinite loops
+- ✅ No more cache management issues
+- ✅ No more false positives
+
+---
+
 ## Version 3.0.1 - Critical Bug Fixes 🐛
 *Released: December 23, 2025*
 

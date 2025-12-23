@@ -65,6 +65,11 @@ async function runCLI(): Promise<void> {
         const sourceLang = args.find(arg => !arg.startsWith('--') && !arg.startsWith('-') && arg !== 'sync');
         await translationManager.syncTranslations(sourceLang, forceFlag);
         break;
+      
+      case 'sync-modified':
+        const modifiedSourceLang = args[1];
+        await translationManager.syncModified(modifiedSourceLang);
+        break;
         
       case 'status':
         const statusSourceLang = args[1];
@@ -140,36 +145,29 @@ function showHelp(): void {
 Usage: i18n-translate <command> [options]
 
 Commands:
-  sync [source-lang] [--force]        Sync translations from source language to all others
-  status [source-lang]            Show translation status for all languages
-  add-key <key> <value> [lang]    Add new translation key to all languages
-  add-language <source> <target>  Add new language by cloning from source
-  server [port]                   Start web server (default port: 3001)
-  languages                       List all supported languages
-  config                          Show current configuration
-  help                           Show this help message
+  sync [source-lang] [--force]        Sync translations (missing/empty keys only)
+  sync-modified [source-lang]         Sync ONLY keys changed in git diff
+  status [source-lang]                Show translation status for all languages
+  add-key <key> <value> [lang]        Add new translation key to all languages
+  add-language <source> <target>      Add new language by cloning from source
+  server [port]                       Start web server (default port: 3001)
+  languages                           List all supported languages
+  config                              Show current configuration
+  help                                Show this help message
 
 Examples:
-  i18n-translate sync                    # Smart sync: only modified/new keys
-  i18n-translate sync en                 # Smart sync from English
+  i18n-translate sync                    # Translate missing keys
   i18n-translate sync --force            # Force re-translate ALL keys
-  i18n-translate sync en --force         # Force re-translate from English
+  i18n-translate sync-modified           # Translate only git-changed keys
+  i18n-translate sync-modified en        # Specify source language
   i18n-translate status                  # Show translation status
   i18n-translate add-key "app.title" "My App"
   i18n-translate add-language en fr      # Add French by cloning English
   i18n-translate server 3000            # Start server on port 3000
 
-Smart Detection (Default):
-  Automatically detects which English keys have been modified since last sync
-  and only translates those keys. Perfect for large projects!
-  
-  Example: In a 1000-key project with 7 languages:
-  - Modify 5 keys → Only translates 35 items (5 × 7) instead of 7000!
-  - Cache stored in: .i18n-sync-cache.json
-
-Force Mode:
-  Use --force flag to re-translate ALL keys (ignores cache).
-  Useful for: testing translations, changing translation service, or debugging.
+sync vs sync-modified:
+  sync           - Translates all missing/empty keys (simple, reliable)
+  sync-modified  - Uses git diff to translate ONLY changed keys (fast, requires git)
 
 Configuration:
   Place a config file in your project root:

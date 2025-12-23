@@ -565,18 +565,106 @@ export class TranslationManager {
       await this.syncLanguage(sourceLang, targetLang, sourceData, force);
     }
     
-    // Save cache after successful sync (unless in force mode, which is a one-time operation)
-    if (!force) {
-      const cache: SyncCache = {
-        lastSync: new Date().toISOString(),
-        sourceLang: sourceLang,
-        sourceData: this.flattenKeys(sourceData)
-      };
-      this.saveCache(cache);
-      console.log('\n💾 Sync state saved to cache');
+    console.log('\n🎉 Translation sync completed!');
+  }
+
+  /**
+   * Get modified keys from git diff for source language file
+   * @param sourceLang - Source language code
+   * @returns Set of modified key paths from git changes
+   */
+  private async getModifiedKeysFromGit(sourceLang: string): Promise<Set<string>> {
+    const { execSync } = await import('child_process');
+    const modifiedKeys = new Set<string>();
+    
+    try {
+      const sourceFile = `${this.config.localesPath}/${sourceLang}.json`;
+      
+      // Get git diff for the source file (staged + unstaged)
+      const diff = execSync(`git diff HEAD ${sourceFile}`, { encoding: 'utf-8' }).trim();
+      
+      if (!diff) {
+        return modifiedKeys;
+      }
+      
+      // Get the old version from git
+      const oldContent = execSync(`git show HEAD:${sourceFile}`, { encoding: 'utf-8' }).trim();
+      const oldData = JSON.parse(oldContent);
+      
+      // Get the current version from file
+      const currentData = this.loadLocale(sourceLang);
+      
+      // Compare all keys and find changes
+      const allKeys = new Set([
+        ...this.getAllKeys(oldData),
+        ...this.getAllKeys(currentData)
+      ]);
+      
+      for (const key of allKeys) {
+        const oldValue = this.getValue(oldData, key);
+        const currentValue = this.getValue(currentData, key);
+        
+        // Key is modified if:
+        // 1. Value changed
+        // 2. Key was added (exists in current but not in old)
+        // 3. Key was removed (exists in old but not in current)
+        if (oldValue !== currentValue) {
+          modifiedKeys.add(key);
+        }
+      }
+      
+      return modifiedKeys;
+    } catch (error) {
+      console.warn('⚠️  Could not read git diff:', (error as Error).message);
+      console.warn('   Make sure you are in a git repository with changes to sync.');
+      return modifiedKeys;
+    }
+  }
+
+  /**
+   * Sync only translations for keys that changed in git diff
+   * @param sourceLang - Source language code (defaults to config.defaultSourceLang)
+   */
+  public async syncModified(sourceLang?: string): Promise<void> {
+    sourceLang = sourceLang || this.config.defaultSourceLang;
+    console.log(`🔍 Detecting modified keys in ${sourceLang}.json from git diff...\n`);
+    
+    const sourceData = this.loadLocale(sourceLang);
+    if (Object.keys(sourceData).length === 0) {
+      console.error(`❌ Source language file ${sourceLang}.json is empty or doesn't exist!`);
+      return;
     }
     
-    console.log('\n🎉 Translation sync completed!');
+    const modifiedKeys = await this.getModifiedKeysFromGit(sourceLang);
+    
+    if (modifiedKeys.size === 0) {
+      console.log('✅ No modified keys found in git diff.');
+      console.log('   Tip: Make changes to your source language file and try again.');
+      return;
+    }
+    
+    console.log(`📝 Found ${modifiedKeys.size} modified key(s) in git diff\n`);
+    
+    for (const targetLang of Object.keys(this.supportedLanguages)) {
+      if (targetLang === sourceLang) continue;
+      
+      console.log(`\\n🎯 Processing ${targetLang}...`);
+      const targetData = this.loadLocale(targetLang);
+      
+      const keysArray = Array.from(modifiedKeys);
+      console.log(`🔄 Translating ${keysArray.length} modified key(s) to ${targetLang}`);
+      
+      const updatedData = await this.translateMissingKeys(
+        sourceLang,
+        targetLang,
+        keysArray,
+        sourceData,
+        targetData
+      );
+      this.saveLocale(targetLang, updatedData);
+    }
+    
+    console.log('\n🎉 Modified translations synced!');
   }
 
   /**
@@ -591,52 +679,28 @@ export class TranslationManager {
     console.log(`\n🎯 Processing ${targetLang}...`);
     
     const targetData = this.loadLocale(targetLang);
-    let keysToTranslate: string[];
+    let missingKeys: string[];
     
     if (force) {
       // In force mode, re-translate ALL keys
-      keysToTranslate = this.getAllKeys(sourceData);
-      console.log(`🔄 Force mode: re-translating all ${keysToTranslate.length} keys in ${targetLang}.json`);
+      missingKeys = this.getAllKeys(sourceData);
+      console.log(`🔄 Force mode: re-translating all ${missingKeys.length} keys in ${targetLang}.json`);
     } else {
-      // Smart detection: find missing keys + keys modified in source
-      const cache = this.loadCache();
-      const hasCache = cache !== null && cache.sourceLang === sourceLang;
-      const missingKeys = this.findMissingTranslations(sourceData, targetData, sourceLang, targetLang, hasCache);
-      const modifiedKeys = this.getModifiedKeys(sourceData, sourceLang);
+      // Simple mode: translate missing/empty keys only
+      missingKeys = this.findMissingTranslations(sourceData, targetData, sourceLang, targetLang, false);
       
-      // Combine missing and modified keys (use Set to avoid duplicates)
-      const missingSet = new Set(missingKeys);
-      const modifiedSet = new Set(modifiedKeys);
-      const keysSet = new Set([...missingKeys, ...modifiedKeys]);
-      keysToTranslate = Array.from(keysSet);
-      
-      if (keysToTranslate.length === 0) {
+      if (missingKeys.length === 0) {
         console.log(`✅ ${targetLang}.json is up to date!`);
         return;
       }
       
-      // Calculate distinct categories for accurate reporting
-      const bothModifiedAndMissing = Array.from(modifiedSet).filter(k => missingSet.has(k));
-      const onlyModified = Array.from(modifiedSet).filter(k => !missingSet.has(k));
-      const onlyMissing = Array.from(missingSet).filter(k => !modifiedSet.has(k));
-      
-      // Display categorized counts
-      if (onlyModified.length > 0) {
-        console.log(`📝 Found ${onlyModified.length} modified key(s) in source`);
-      }
-      if (onlyMissing.length > 0) {
-        console.log(`➕ Found ${onlyMissing.length} missing key(s) in target`);
-      }
-      if (bothModifiedAndMissing.length > 0) {
-        console.log(`🆕 Found ${bothModifiedAndMissing.length} new key(s) in source`);
-      }
-      console.log(`📋 Total: ${keysToTranslate.length} key(s) to translate in ${targetLang}.json`);
+      console.log(`📋 Found ${missingKeys.length} keys needing translation in ${targetLang}.json`);
     }
     
     const updatedData = await this.translateMissingKeys(
       sourceLang, 
       targetLang, 
-      keysToTranslate, 
+      missingKeys, 
       sourceData, 
       force ? {} : targetData
     );
