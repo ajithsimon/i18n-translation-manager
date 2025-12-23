@@ -127,11 +127,39 @@ export default {
 | Command | Description |
 |---------|-------------|
 | `i18n-translate init` | Create configuration file |
-| `i18n-translate sync [source-lang]` | Sync all translations |
+| `i18n-translate sync [source-lang]` | **Smart sync**: only translates modified/new keys |
+| `i18n-translate sync --force` | Force re-translate ALL keys (ignores cache) |
 | `i18n-translate add <key> <text> [lang]` | Add new translation key |
 | `i18n-translate check [source-lang]` | Check translation status |
 | `i18n-translate server [port]` | Start web GUI server |
 | `i18n-translate help` | Show help information |
+
+### Smart Change Detection 🚀
+
+The sync command automatically detects which keys have been modified since the last sync and **only translates those keys**, making it incredibly fast for large projects:
+
+```bash
+# Smart sync (default) - only translates modified/new keys
+i18n-translate sync
+
+# Example: In a 1000-key project with 7 languages:
+# - Modify 5 keys → Only translates 35 items (5 × 7) instead of 7000!
+# - 200x faster for small changes
+```
+
+**How it works:**
+- Creates a cache file (`.i18n-sync-cache.json`) to track source language state
+- Compares current source with cached version to detect modifications
+- Only translates keys that are:
+  - ✨ New (not in target language)
+  - 🔄 Modified (value changed in source language)
+  - ❌ Missing or empty in target language
+
+**Force mode:**
+```bash
+# Re-translate everything (useful for testing/debugging)
+i18n-translate sync --force
+```
 
 ## Framework Support
 

@@ -86,3 +86,6 @@ typings/
 dist/
 src/**/*.js
 src/**/*.js.map
+
+# i18n Translation Manager cache files
+**/.i18n-sync-cache.json
