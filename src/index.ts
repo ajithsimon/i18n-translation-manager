@@ -66,24 +66,10 @@ export interface ProgressData {
   total?: number;
 }
 
-/**
- * Cache structure for tracking source language state
- * Used to detect which keys have been modified since last sync
- */
-export interface SyncCache {
-  /** Timestamp of last sync */
-  lastSync: string;
-  /** Source language code */
-  sourceLang: string;
-  /** Flattened key-value pairs from source at last sync */
-  sourceData: { [key: string]: string };
-}
-
 export class TranslationManager {
   private config: Required<TranslationConfig>;
   private localesPath: string;
   private supportedLanguages: SupportedLanguages;
-  private cacheFilePath: string;
 
   constructor(config: TranslationConfig = {}) {
     this.config = {
@@ -100,7 +86,6 @@ export class TranslationManager {
     };
     
     this.localesPath = path.resolve(process.cwd(), this.config.localesPath);
-    this.cacheFilePath = path.join(this.localesPath, '.i18n-sync-cache.json');
     this.supportedLanguages = this.detectSupportedLanguages();
   }
 
@@ -257,65 +242,6 @@ export class TranslationManager {
     }
     
     return flattened;
-  }
-
-  /**
-   * Load sync cache from file
-   * @returns Cached data or null if not found or invalid
-   */
-  private loadCache(): SyncCache | null {
-    try {
-      if (!fs.existsSync(this.cacheFilePath)) {
-        return null;
-      }
-      
-      const content = fs.readFileSync(this.cacheFilePath, 'utf-8');
-      return JSON.parse(content) as SyncCache;
-    } catch (error) {
-      console.warn('⚠️  Failed to load sync cache:', (error as Error).message);
-      return null;
-    }
-  }
-
-  /**
-   * Save sync cache to file
-   * @param cache - Cache data to save
-   */
-  private saveCache(cache: SyncCache): void {
-    try {
-      fs.writeFileSync(this.cacheFilePath, JSON.stringify(cache, null, 2));
-    } catch (error) {
-      console.warn('⚠️  Failed to save sync cache:', (error as Error).message);
-    }
-  }
-
-  /**
-   * Detect which keys have been modified by comparing current source with cache
-   * @param currentSource - Current source language data
-   * @param sourceLang - Source language code
-   * @returns Set of modified key paths
-   */
-  private getModifiedKeys(currentSource: TranslationData, sourceLang: string): Set<string> {
-    const cache = this.loadCache();
-    
-    if (!cache || cache.sourceLang !== sourceLang) {
-      // No cache - return empty set (first sync should only translate truly missing keys)
-      // This prevents re-translating existing translations on first install
-      return new Set<string>();
-    }
-    
-    const currentFlat = this.flattenKeys(currentSource);
-    const cachedFlat = cache.sourceData;
-    const modifiedKeys = new Set<string>();
-    
-    // Find new or modified keys
-    for (const key in currentFlat) {
-      if (!(key in cachedFlat) || currentFlat[key] !== cachedFlat[key]) {
-        modifiedKeys.add(key);
-      }
-    }
-    
-    return modifiedKeys;
   }
 
   /**
@@ -766,9 +692,7 @@ export class TranslationManager {
     totalKeys: number
   ): TranslationStatus {
     const targetData = this.loadLocale(targetLang);
-    const cache = this.loadCache();
-    const hasCache = cache !== null && cache.sourceLang === sourceLang;
-    const missingKeys = this.findMissingTranslations(sourceData, targetData, sourceLang, targetLang, hasCache);
+    const missingKeys = this.findMissingTranslations(sourceData, targetData, sourceLang, targetLang, false);
     const translated = totalKeys - missingKeys.length;
     const completeness = totalKeys > 0 ? parseFloat(((translated / totalKeys) * 100).toFixed(1)) : 0;
     
