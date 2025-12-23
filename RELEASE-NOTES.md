@@ -1,5 +1,30 @@
 # Release Notes
 
+## Version 3.1.1 - Complete Cache Cleanup 🧹
+*Released: December 23, 2025*
+
+### 🧹 Final Cleanup
+
+Complete removal of all unused cache-related code from v3.0.x:
+
+**Removed (77 lines):**
+- `SyncCache` interface
+- `loadCache()` method
+- `saveCache()` method  
+- `getModifiedKeys()` method with cache logic
+- `cacheFilePath` property
+- Cache usage in `calculateLanguageStatus()`
+
+**Result:**
+- ✅ Clean, maintainable codebase
+- ✅ Zero cache-related code
+- ✅ Only git-based `sync-modified` remains for change detection
+- ✅ Simple, predictable behavior throughout
+
+This is a maintenance release with no functional changes - just code cleanup!
+
+---
+
 ## Version 3.1.0 - Simplified Sync + Git-Based Smart Sync 🎯
 *Released: December 23, 2025*
 

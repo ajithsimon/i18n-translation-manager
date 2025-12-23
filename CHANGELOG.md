@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **📋 For detailed release information and migration guides, see [RELEASE-NOTES.md](RELEASE-NOTES.md)**
 
+## [3.1.1] - 2025-12-23
+
+### Fixed
+- 🧹 **Complete Cache Cleanup**: Removed all remaining unused cache code (77 lines removed)
+- 🗑️ **Removed**: SyncCache interface, loadCache(), saveCache(), getModifiedKeys() methods
+- ✅ **Clean Codebase**: Zero cache-related code remaining
+
 ## [3.1.0] - 2025-12-23
 
 ### 🎯 Major Simplification: Back to Basics + Git-Based Smart Sync
