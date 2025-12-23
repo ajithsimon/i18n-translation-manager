@@ -1,5 +1,160 @@
 # Release Notes
 
+## Version 3.0.1 - Critical Bug Fixes 🐛
+*Released: December 23, 2025*
+
+### 🐛 Critical Bug Fixes
+
+#### **Fixed Re-translation on First Install**
+**Issue**: When users installed v3.0.0 for the first time in projects with existing translations, the tool re-translated ALL keys instead of only missing ones, creating massive git diffs.
+
+**Root Cause**: `getModifiedKeys()` returned all keys when no cache existed, causing the system to treat everything as "modified."
+
+**Fix**: No cache = empty modified set. Only truly missing keys are translated on first install.
+
+**Impact**: 
+- ✅ First install no longer creates unnecessary git diffs
+- ✅ Existing translations are preserved
+- ✅ Only genuinely missing keys are translated
+
+#### **Fixed Infinite Re-translation Loop**
+**Issue**: Keys with identical source/target values (like "Email", "OK") were flagged as "needs translation" on every sync, causing infinite loops.
+
+**Root Cause**: `needsTranslation()` checked if target matches source to detect untranslated keys, but this created false positives for legitimate identical translations.
+
+**Fix**: Enhanced logic with `hasCache` parameter:
+- **With cache**: Skip the source-match check (we know what's modified from cache)
+- **Without cache**: Only translate truly missing/empty values
+
+**Impact**:
+- ✅ No more infinite sync loops
+- ✅ Identical translations (Email, OK, etc.) handled correctly
+- ✅ Stable sync behavior after first run
+
+### 📊 Behavior Comparison
+
+**v3.0.0 (buggy):**
+```bash
+# First install
+sync → translates ALL 1000 keys (massive git diff)
+sync → translates 50 keys (false positives)
+sync → translates 50 keys (infinite loop)
+```
+
+**v3.0.1 (fixed):**
+```bash
+# First install
+sync → translates only 10 truly missing keys
+sync → "✅ all languages up to date!"
+sync → "✅ all languages up to date!" (stable)
+```
+
+### 🔧 Technical Changes
+
+#### **getModifiedKeys() Fix**
+```typescript
+// Before (v3.0.0)
+if (!cache) {
+  return new Set(this.getAllKeys(currentSource)); // BAD: all keys!
+}
+
+// After (v3.0.1)
+if (!cache) {
+  return new Set<string>(); // GOOD: empty set
+}
+```
+
+#### **needsTranslation() Enhancement**
+```typescript
+// Added hasCache parameter
+private needsTranslation(
+  key: string,
+  sourceData: TranslationData,
+  targetData: TranslationData,
+  sourceLang: string,
+  targetLang: string,
+  hasCache: boolean // NEW
+): boolean {
+  // Skip source-match check when we have cache
+  if (hasCache && targetLang !== sourceLang && targetValue === sourceValue) {
+    return false; // Don't re-translate identical values
+  }
+  // ...
+}
+```
+
+### 🚀 Upgrade Instructions
+
+```bash
+# Update to v3.0.1
+npm install -g i18n-translation-manager@3.0.1
+
+# Or in your project
+npm install --save-dev i18n-translation-manager@3.0.1
+
+# First sync (no massive diff anymore!)
+i18n-translate sync
+```
+
+### 💡 For Users Affected by v3.0.0
+
+If you installed v3.0.0 and saw all translations re-done:
+
+1. **Don't commit the changes yet**
+2. **Update to v3.0.1**:
+   ```bash
+   npm install --save-dev i18n-translation-manager@3.0.1
+   ```
+3. **Revert the locale files**:
+   ```bash
+   git checkout -- src/i18n/locales/*.json
+   ```
+4. **Sync again** (will be clean now):
+   ```bash
+   i18n-translate sync
+   ```
+
+Alternatively, you can keep the v3.0.0 translations (they're valid), just update to v3.0.1 for future syncs.
+
+### 🧪 Testing
+
+**Test Scenario 1: First Install**
+```bash
+# Project with existing translations
+rm .i18n-sync-cache.json
+i18n-translate sync
+# Result: Only truly missing keys translated ✅
+```
+
+**Test Scenario 2: Identical Values**
+```json
+// en.json
+{"email": "Email"}
+
+// fr.json
+{"email": "Email"}  // Same in French
+```
+```bash
+i18n-translate sync
+# Result: "✅ all up to date" (no re-translation) ✅
+```
+
+**Test Scenario 3: Actual Changes**
+```bash
+# Modify en.json: "Save" → "Save Changes"
+i18n-translate sync
+# Result: Only "Save" key translated ✅
+```
+
+### 📈 Impact
+
+- **Large Projects**: No more 1000+ line git diffs on first install
+- **Stability**: Sync is now truly idempotent (running twice = same result)
+- **Performance**: No wasted translations on unchanged keys
+- **Developer Experience**: Clean, predictable behavior
+
+---
+
 ## Version 3.0.0 - Smart Sync: Intelligent Change Detection 🚀
 *Released: December 23, 2025*
 

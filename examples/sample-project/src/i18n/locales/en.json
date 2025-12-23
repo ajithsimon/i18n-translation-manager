@@ -1,22 +1,11 @@
 {
-    "app": {
-        "title": "i18n Translation Manager - Pro Edition",
-        "description": "An advanced tool for managing multilingual translations",
-        "welcome": "Welcome to our awesome application"
-    },
-    "navigation": {
-        "home": "Home Page",
-        "about": "About Us - We are awesome!",
-        "contact": "Contact"
-    },
-    "buttons": {
-        "submit": "Submit Form",
-        "cancel": "Cancel Operation",
-        "save": "Save Changes Now",
-        "hello": "Hello World",
-        "delete": "Delete Item",
-        "edit": "Edit Item",
-        "refresh": "Refresh the new page",
-        "greetings": "Greetings from i18n Translation Manager"
-    }
+  "app": {
+    "title": "My App",
+    "description": "App description"
+  },
+  "buttons": {
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "delete": "Delete Item"
+  }
 }

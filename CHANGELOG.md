@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **📋 For detailed release information and migration guides, see [RELEASE-NOTES.md](RELEASE-NOTES.md)**
 
+## [3.0.1] - 2025-12-23
+
+### Fixed
+- 🐛 **Critical Fix**: Prevents re-translating all existing translations on first install
+- 🐛 **Infinite Loop Fix**: Resolved issue where identical source/target values caused endless re-translation
+- 🎯 **Smart Cache Behavior**: No cache = only translate truly missing keys (not all keys)
+
+### Improved
+- ✨ **First Install Experience**: Users installing v3.0.1 won't see massive git diffs from re-translations
+- 🔍 **Better Detection**: Only marks keys as "modified" when cache exists for comparison
+- 📊 **hasCache Parameter**: Enhanced needsTranslation logic to prevent false positives
+
 ## [3.0.0] - 2025-12-23
 
 ### 🚀 Major Release: Smart Sync with Intelligent Change Detection

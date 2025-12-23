@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "i18n 翻译管理器 - 专业版",
+    "title": "i18n 翻译管理器 - 已更改",
     "description": "用于管理多语言翻译的高级工具",
     "welcome": "欢迎使用我们出色的应用程序"
   },
@@ -12,11 +12,12 @@
   "buttons": {
     "submit": "提交表格",
     "cancel": "取消操作",
-    "save": "立即保存更改",
+    "save": "保存更改",
     "hello": "你好世界",
     "delete": "删除项目",
     "edit": "编辑项目",
     "refresh": "刷新新页面",
-    "greetings": "来自 i18n 翻译经理的问候"
+    "greetings": "来自 i18n 翻译经理的问候",
+    "newButton": "这是一个新按钮"
   }
 }

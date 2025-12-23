@@ -299,8 +299,9 @@ export class TranslationManager {
     const cache = this.loadCache();
     
     if (!cache || cache.sourceLang !== sourceLang) {
-      // No cache or different source language - consider all keys as modified
-      return new Set(this.getAllKeys(currentSource));
+      // No cache - return empty set (first sync should only translate truly missing keys)
+      // This prevents re-translating existing translations on first install
+      return new Set<string>();
     }
     
     const currentFlat = this.flattenKeys(currentSource);
@@ -372,13 +373,14 @@ export class TranslationManager {
     sourceData: TranslationData, 
     targetData: TranslationData, 
     sourceLang: string, 
-    targetLang: string
+    targetLang: string,
+    hasCache: boolean = false
   ): string[] {
     const sourceKeys = this.getAllKeys(sourceData);
     const missing: string[] = [];
     
     for (const key of sourceKeys) {
-      if (this.needsTranslation(key, sourceData, targetData, sourceLang, targetLang)) {
+      if (this.needsTranslation(key, sourceData, targetData, sourceLang, targetLang, hasCache)) {
         missing.push(key);
       }
     }
@@ -388,24 +390,34 @@ export class TranslationManager {
 
   /**
    * Check if a specific key needs translation
+   * @param key - Key to check
+   * @param sourceData - Source language data
+   * @param targetData - Target language data
+   * @param sourceLang - Source language code
+   * @param targetLang - Target language code
+   * @param hasCache - Whether cache exists (affects "matches source" check)
+   * @returns True if key needs translation
    */
   private needsTranslation(
     key: string,
     sourceData: TranslationData,
     targetData: TranslationData,
     sourceLang: string,
-    targetLang: string
+    targetLang: string,
+    hasCache: boolean = false
   ): boolean {
     const targetValue = this.getValue(targetData, key);
     const sourceValue = this.getValue(sourceData, key);
     
-    // Missing or empty value
+    // Always check: Missing or empty value
     if (targetValue === undefined || targetValue === null || targetValue === '') {
       return true;
     }
     
-    // Value matches source (needs translation if not source language)
-    if (targetLang !== sourceLang && targetValue === sourceValue) {
+    // Only check "matches source" on first sync (no cache)
+    // Once we have cache, trust that translations are done
+    // This prevents false positives when translations legitimately match source
+    if (!hasCache && targetLang !== sourceLang && targetValue === sourceValue) {
       return true;
     }
     
@@ -587,7 +599,9 @@ export class TranslationManager {
       console.log(`🔄 Force mode: re-translating all ${keysToTranslate.length} keys in ${targetLang}.json`);
     } else {
       // Smart detection: find missing keys + keys modified in source
-      const missingKeys = this.findMissingTranslations(sourceData, targetData, sourceLang, targetLang);
+      const cache = this.loadCache();
+      const hasCache = cache !== null && cache.sourceLang === sourceLang;
+      const missingKeys = this.findMissingTranslations(sourceData, targetData, sourceLang, targetLang, hasCache);
       const modifiedKeys = this.getModifiedKeys(sourceData, sourceLang);
       
       // Combine missing and modified keys (use Set to avoid duplicates)
@@ -688,7 +702,9 @@ export class TranslationManager {
     totalKeys: number
   ): TranslationStatus {
     const targetData = this.loadLocale(targetLang);
-    const missingKeys = this.findMissingTranslations(sourceData, targetData, sourceLang, targetLang);
+    const cache = this.loadCache();
+    const hasCache = cache !== null && cache.sourceLang === sourceLang;
+    const missingKeys = this.findMissingTranslations(sourceData, targetData, sourceLang, targetLang, hasCache);
     const translated = totalKeys - missingKeys.length;
     const completeness = totalKeys > 0 ? parseFloat(((translated / totalKeys) * 100).toFixed(1)) : 0;
     
